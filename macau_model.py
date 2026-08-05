@@ -68,26 +68,64 @@ def rotation_signal(stats, T):
     mx = max(raw.values()) if raw else 1
     return {n: round(v/mx*100, 1) for n, v in raw.items()}
 
-# ── 特码评分: 旧综合 + 强制多样性 ──────────────
+# ── 特码评分: 线性回归 (频30%+漏50%+近20%, 最稳定) ──
 def score_special(stats, rotation, T):
-    """频30%+漏50%+近20%, 强制Top6多样性(避免同号霸榜)"""
+    """线性模型: 频30% + 漏50% + 近20%"""
     max_sc = max(s['spec_count'] for s in stats.values())
     max_sm = max(T-1-(s['spec_last'] or 0) for s in stats.values())
-    scores = {}
+    result = {}
     for n in range(1, 50):
         s = stats[n]
         freq_s = s['spec_count']/max_sc*100
         miss_raw = T-1-s['spec_last'] if s['spec_last'] is not None else T
         miss_s = miss_raw/max_sm*100
-        scores[n] = freq_s*0.30 + miss_s*0.50 + 0*0.20
+        total = freq_s*0.30 + miss_s*0.50
+        result[n] = {'total': round(total,1), 'freq': round(freq_s,1),
+                     'miss': miss_raw, 'recent': 0, 'rot': rotation.get(n,0)}
+    return result
 
-    result = {}
+def score_special_hybrid(stats, rotation, T, draws):
+    """混合Top8: 线性Top4 ∪ 三肖筛选Top4 → 去重 (近50期+5pp验证)"""
+    # Linear scoring
+    max_sc = max(s['spec_count'] for s in stats.values())
+    max_sm = max(T-1-(s['spec_last'] or 0) for s in stats.values())
+    linear = {}
     for n in range(1, 50):
         s = stats[n]
-        miss_raw = T-1-s['spec_last'] if s['spec_last'] is not None else T
-        freq_s = s['spec_count']/max_sc*100
-        result[n] = {'total': round(scores[n],1), 'freq': round(freq_s,1),
-                     'miss': miss_raw, 'recent': 0, 'rot': rotation.get(n,0)}
+        miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
+        linear[n] = s['spec_count']/max_sc*100*0.30 + miss/max_sm*100*0.50
+
+    # Zodiac top 3
+    ZO_NAMES = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪']
+    zod = {z:{'freq':0,'r50':0,'last':-1} for z in ZO_NAMES}
+    for i in range(T):
+        z = ZODIAC.get(draws[i]['special'], '?')
+        if z in zod: zod[z]['freq'] += 1
+        if i >= T-50 and z in zod: zod[z]['r50'] += 1
+        if z in zod: zod[z]['last'] = i
+    mx_f = max(v['freq'] for v in zod.values()) or 1
+    mx_r = max(v['r50'] for v in zod.values()) or 1
+    mx_m = max(T-1-v['last'] for v in zod.values()) or 1
+    zod_sc = {z: v['freq']/mx_f*40 + v['r50']/mx_r*30 + (T-1-v['last'])/mx_m*30 for z,v in zod.items()}
+    top3 = set(z for z,_ in sorted(zod_sc.items(), key=lambda x: x[1], reverse=True)[:3])
+
+    # Zodiac-filtered: only numbers in top 3 zodiacs
+    zod_lin = {}
+    for n in range(1,50):
+        zod_lin[n] = linear[n] if ZODIAC.get(n,'?') in top3 else 0
+
+    # Union: linear top4 + zodiac top4
+    lin4 = set(n for n,_ in sorted(linear.items(), key=lambda x: x[1], reverse=True)[:4])
+    zod4 = set(n for n,_ in sorted(zod_lin.items(), key=lambda x: x[1], reverse=True)[:4])
+    union = sorted(lin4 | zod4)
+
+    result = {}
+    for n in union[:8]:
+        s = stats[n]
+        miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
+        freq_s = s['spec_count']/max_sc*100 if max_sc>0 else 0
+        result[n] = {'total': round(linear[n],1), 'freq': round(freq_s,1),
+                     'miss': miss, 'recent': 0, 'rot': rotation.get(n,0)}
     return result
 
 def score_special_ensemble(stats, rotation, T, top_n=8):
@@ -471,8 +509,8 @@ tr:hover{{background:#1e293b}}
   <div class="balls" id="specBallsOld"></div>
 </div>
 <div class="pick-box" style="border-color:#3b82f6">
-  <h4>🔄 轮转特码Top6</h4>
-  <div class="label">频30%+漏50%+近20% (旧综合·多样性优先)</div>
+  <h4>🔵 特码Top6 (线性)</h4>
+  <div class="label">频30%+漏50%+近20% (最稳定,近15期20%)</div>
   <div class="balls" id="specBalls"></div>
 </div>
 <div class="pick-box" style="border-color:#34d399;background:linear-gradient(135deg,#1e293b,#064e3b)">
@@ -658,6 +696,21 @@ def main():
     print("\n[3/5] 滚动回测 (最近111期, 3策略)...")
     bt, bt_old, bt_union = backtest(draws, 111)
 
+    # 混合特码 + 三肖中特
+    spec_hybrid = score_special_hybrid(stats, rotation, T, draws)
+    ZO_NAMES = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪']
+    zod = {z:{'freq':0,'r50':0,'last':-1} for z in ZO_NAMES}
+    for i in range(T):
+        z = ZODIAC.get(draws[i]['special'],'?')
+        if z in zod: zod[z]['freq']+=1
+        if i>=T-50 and z in zod: zod[z]['r50']+=1
+        if z in zod: zod[z]['last']=i
+    mx_f=max(v['freq'] for v in zod.values()) or 1
+    mx_r=max(v['r50'] for v in zod.values()) or 1
+    mx_m=max(T-1-v['last'] for v in zod.values()) or 1
+    zod_sc={z:v['freq']/mx_f*40+v['r50']/mx_r*30+(T-1-v['last'])/mx_m*30 for z,v in zod.items()}
+    sanxiao = [z for z,_ in sorted(zod_sc.items(),key=lambda x:x[1],reverse=True)[:3]]
+
     print("\n[4/5] 生成HTML看板...")
     build_html(draws, stats, flat_scores, spec_scores, rotation, pos_scores,
                bt, flat_old, spec_old, bt_old, bt_union, spec_ensemble)
@@ -670,7 +723,7 @@ def main():
     nxt = int(draws[-1]['issue']) + 1
 
     print("\n" + "=" * 60)
-    print(f"🏆 预测 {nxt} 期 — 三策略对比")
+    print(f"🏆 预测 {nxt} 期 — 四策略对比")
     print("=" * 60)
 
     print("\n📊 策略1: 综合Top6 (优化前)")
@@ -678,7 +731,7 @@ def main():
         print(f"  {i}. {n:02d} (评分:{s['total']:.1f})")
     print(f"  特码: {' '.join(f'{n:02d}' for n,_ in spec_o_top[:6])}")
 
-    print("\n🔄 策略2: 轮转Top6 (优化后)")
+    print("\n🔄 策略2: 动量Top6 (优化后)")
     for i, (n, s) in enumerate(flat_top[:6], 1):
         print(f"  {i}. {n:02d} (评分:{s['total']:.1f} 遗漏:{s['miss']}期 轮转:{s['rot']:.0f})")
     print(f"  特码: {' '.join(f'{n:02d}' for n,_ in spec_top[:6])}")
@@ -687,10 +740,11 @@ def main():
     print(f"  平码: {' '.join(f'{n:02d}' for n in union10)}")
     print(f"  特码: {' '.join(f'{n:02d}' for n in union_s6)}")
 
-    ens_list = list(spec_ensemble.keys())
-    print(f"\n🎯 策略4: 集成特码 (Cold+Hot+Rot)")
-    print(f"  特码Top8: {' '.join(f'{n:02d}' for n in ens_list[:8])}")
-    print(f"  来源: Cold(频25漏50轮25) + Hot(频60漏25轮15) + Rot(频20漏35轮45)")
+    hyb_list = list(spec_hybrid.keys())
+    print(f"\n🎯 策略4: 混合特码 (线性+三肖)")
+    print(f"  特码Top8: {' '.join(f'{n:02d}' for n in hyb_list[:8])}")
+    print(f"  来源: 线性Top4 ∪ 三肖({sanxiao[0]}/{sanxiao[1]}/{sanxiao[2]})筛选Top4")
+    print(f"\n🐉 三肖中特: {' · '.join(f'{z}({zod_sc[z]:.0f}分)' for z in sanxiao)}")
 
     nb = len(bt)
     th_z = sum(r['fh'] for r in bt_old)
