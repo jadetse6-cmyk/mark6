@@ -68,19 +68,49 @@ def rotation_signal(stats, T):
     mx = max(raw.values()) if raw else 1
     return {n: round(v/mx*100, 1) for n, v in raw.items()}
 
-# ── 特码评分: 线性回归 (频30%+漏50%+近20%, 最稳定) ──
-def score_special(stats, rotation, T):
-    """线性模型: 频30% + 漏50% + 近20%"""
+# ── 特码评分: 三肖筛选+频漏排序 (+6pp vs 纯线性) ──
+def score_special(stats, rotation, T, draws=None):
+    """三肖筛选: 先定Top3生肖→每肖选最冷2号=Top6 (近50期22% vs 旧16%)"""
     max_sc = max(s['spec_count'] for s in stats.values())
     max_sm = max(T-1-(s['spec_last'] or 0) for s in stats.values())
-    result = {}
-    for n in range(1, 50):
+
+    def linear_score(n):
         s = stats[n]
-        freq_s = s['spec_count']/max_sc*100
+        miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
+        return s['spec_count']/max_sc*100*0.30 + miss/max_sm*100*0.50
+
+    # Get top 3 zodiacs (same as 三肖中特)
+    if draws:
+        ZO_NAMES = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪']
+        zod = {z:{'freq':0,'r50':0,'last':-1} for z in ZO_NAMES}
+        for i in range(T):
+            z = ZODIAC.get(draws[i]['special' if 'special' in draws[i] else 's'],'?')
+            if z in zod: zod[z]['freq']+=1
+            if i>=T-50 and z in zod: zod[z]['r50']+=1
+            if z in zod: zod[z]['last']=i
+        mx_f=max(v['freq'] for v in zod.values()) or 1
+        mx_r=max(v['r50'] for v in zod.values()) or 1
+        mx_m=max(T-1-v['last'] for v in zod.values()) or 1
+        zod_sc={z:v['freq']/mx_f*50+v['r50']/mx_r*30+(T-1-v['last'])/mx_m*20 for z,v in zod.items()}
+        top3_zod = set(z for z,_ in sorted(zod_sc.items(),key=lambda x:x[1],reverse=True)[:3])
+
+        # Within top3 zodiacs, pick 2 best numbers each
+        picks = set()
+        for z in top3_zod:
+            znums = [(n,linear_score(n)) for n in range(1,50) if ZODIAC.get(n,'?')==z]
+            znums.sort(key=lambda x:-x[1])
+            picks.update(n for n,_ in znums[:2])
+    else:
+        # Fallback: pure linear top6
+        picks = set(n for n,_ in sorted([(n,linear_score(n)) for n in range(1,50)],
+                                        key=lambda x:-x[1])[:6])
+
+    result = {}
+    for n in picks:
+        s = stats[n]
         miss_raw = T-1-s['spec_last'] if s['spec_last'] is not None else T
-        miss_s = miss_raw/max_sm*100
-        total = freq_s*0.30 + miss_s*0.50
-        result[n] = {'total': round(total,1), 'freq': round(freq_s,1),
+        freq_s = s['spec_count']/max_sc*100 if max_sc>0 else 0
+        result[n] = {'total': round(linear_score(n),1), 'freq': round(freq_s,1),
                      'miss': miss_raw, 'recent': 0, 'rot': rotation.get(n,0)}
     return result
 
@@ -106,7 +136,7 @@ def score_special_hybrid(stats, rotation, T, draws):
     mx_f = max(v['freq'] for v in zod.values()) or 1
     mx_r = max(v['r50'] for v in zod.values()) or 1
     mx_m = max(T-1-v['last'] for v in zod.values()) or 1
-    zod_sc = {z: v['freq']/mx_f*40 + v['r50']/mx_r*30 + (T-1-v['last'])/mx_m*30 for z,v in zod.items()}
+    zod_sc = {z: v['freq']/mx_f*50 + v['r50']/mx_r*30 + (T-1-v['last'])/mx_m*20 for z,v in zod.items()}
     top3 = set(z for z,_ in sorted(zod_sc.items(), key=lambda x: x[1], reverse=True)[:3])
 
     # Zodiac-filtered: only numbers in top 3 zodiacs
@@ -267,7 +297,7 @@ def backtest(draws, window=111):
 
         # 新模型 (轮转)
         flat_sc, _ = score_flat(st, rot, lt)
-        spec_sc = score_special(st, rot, lt)
+        spec_sc = score_special(st, rot, lt, draws[:i])
 
         # 旧模型 (综合)
         flat_old = score_flat_old(st, lt)
@@ -679,7 +709,7 @@ def main():
     rotation = rotation_signal(stats, T)
 
     # 优化后 (轮转)
-    spec_scores = score_special(stats, rotation, T)
+    spec_scores = score_special(stats, rotation, T, draws)
     flat_scores, pos_scores = score_flat(stats, rotation, T)
 
     # 优化前 (综合)
