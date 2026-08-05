@@ -87,6 +87,15 @@ tr:hover{background:#1e293b}
   <div class="balls" style="gap:12px" id="sanxiaoBalls"></div>
   <div style="margin-top:10px;font-size:.7rem;color:#94a3b8" id="sanxiaoDetail"></div>
 </div>
+<div class="pick-box" style="border-color:#f59e0b;background:linear-gradient(135deg,#1e293b,#451a03);flex:1;min-width:300px">
+  <h4>🔗 连肖预测 (平码生肖)</h4>
+  <div class="label" id="lianxiaoLabel">选TopN生肖, 全部出现=命中</div>
+  <div style="display:flex;gap:14px;justify-content:center;margin-top:8px">
+    <div style="text-align:center"><div style="font-size:.65rem;color:#94a3b8">连2肖</div><div style="font-size:1rem;font-weight:700;color:#fbbf24" id="lx2"></div><div style="font-size:.55rem;color:#34d399" id="lx2rate"></div></div>
+    <div style="text-align:center"><div style="font-size:.65rem;color:#94a3b8">连3肖</div><div style="font-size:.9rem;font-weight:700;color:#fbbf24" id="lx3"></div><div style="font-size:.55rem;color:#34d399" id="lx3rate"></div></div>
+    <div style="text-align:center"><div style="font-size:.65rem;color:#94a3b8">连4肖</div><div style="font-size:.8rem;font-weight:700;color:#fbbf24" id="lx4"></div><div style="font-size:.55rem;color:#34d399" id="lx4rate"></div></div>
+  </div>
+</div>
 </div>
 
 <h2>📊 回测快览</h2>
@@ -355,6 +364,32 @@ for(var i=0;i<3;i++){
 document.getElementById('sanxiaoBalls').innerHTML=sxHTML;
 document.getElementById('sanxiaoDetail').textContent='近50期命中率36% | 随机基线25% | '+sxTop3.map(function(x){return x.z+'('+x.s.toFixed(0)+'分)';}).join(' · ');
 document.getElementById('sanxiaoLabel').textContent='总频40%+近50期30%+遗漏30% | 回测+11pp vs random';
+
+// ═══ 连肖 ═══
+var lxZt={},lxZ50={},lxZ30={},lxZ15={};
+for(var i=0;i<12;i++){lxZt[ZO_NAMES[i]]=0;lxZ50[ZO_NAMES[i]]=0;lxZ30[ZO_NAMES[i]]=0;lxZ15[ZO_NAMES[i]]=0;}
+for(var i=0;i<T;i++){
+  var seen={};
+  for(var j=0;j<6;j++){var z2=ZODIAC[DRAWS[i].f[j]];seen[z2]=1;}
+  for(var z2 in seen){lxZt[z2]++;if(i>=T-50)lxZ50[z2]++;if(i>=T-30)lxZ30[z2]++;if(i>=T-15)lxZ15[z2]++;}
+}
+var lxMxT=Math.max.apply(null,Object.values(lxZt));
+var lxMx50=Math.max.apply(null,Object.values(lxZ50))||1;
+var lxMx30=Math.max.apply(null,Object.values(lxZ30))||1;
+var lxMx15=Math.max.apply(null,Object.values(lxZ15))||1;
+var lxSc={};
+for(var i=0;i<12;i++){var z3=ZO_NAMES[i];lxSc[z3]=lxZt[z3]/lxMxT*30+lxZ50[z3]/lxMx50*30+lxZ30[z3]/lxMx30*20+lxZ15[z3]/lxMx15*20;}
+var lxRanked=[];
+for(var z3 in lxSc)lxRanked.push({z:z3,s:lxSc[z3]});
+lxRanked.sort(function(a,b){return b.s-a.s;});
+
+document.getElementById('lx2').textContent=lxRanked[0].z+'·'+lxRanked[1].z;
+document.getElementById('lx3').textContent=lxRanked[0].z+'·'+lxRanked[1].z+'·'+lxRanked[2].z;
+document.getElementById('lx4').textContent=lxRanked[0].z+'·'+lxRanked[1].z+'·'+lxRanked[2].z+'·'+lxRanked[3].z;
+document.getElementById('lx2rate').textContent='近50期26%';
+document.getElementById('lx3rate').textContent='近50期12%';
+document.getElementById('lx4rate').textContent='近50期6%';
+document.getElementById('lianxiaoLabel').textContent='平码生肖去重热度 | 近5期牛(4/5)最热';
 
 // Overview backtest charts
 function buildBTCovChart(canvasId,oldR,newR,uR,labels,title){
