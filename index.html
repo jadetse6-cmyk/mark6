@@ -79,6 +79,16 @@ tr:hover{background:#1e293b}
 <div class="pick-box union"><h4>🔥 并集特码 Top6</h4><div class="label">综合∪动量 去重</div><div class="balls" id="ovSpecUnion"></div></div>
 </div>
 
+<h2>🐉 三肖中特</h2>
+<div class="pick-row">
+<div class="pick-box" style="border-color:#f59e0b;background:linear-gradient(135deg,#1e293b,#451a03);flex:1;min-width:300px">
+  <h4>🐉 三肖预测 (特码生肖)</h4>
+  <div class="label" id="sanxiaoLabel">总频40%+近50期30%+遗漏30%</div>
+  <div class="balls" style="gap:12px" id="sanxiaoBalls"></div>
+  <div style="margin-top:10px;font-size:.7rem;color:#94a3b8" id="sanxiaoDetail"></div>
+</div>
+</div>
+
 <h2>📊 回测快览</h2>
 <div class="cols">
 <div class="card"><h3>平码 各时段覆盖率</h3><canvas id="ovFlatBT"></canvas></div>
@@ -320,6 +330,31 @@ function renderBalls(el,nums,isSpec){
 }
 renderBalls('ovFlatOld',fo6); renderBalls('ovFlatNew',fn6); renderBalls('ovFlatUnion',uf10);
 renderBalls('ovSpecOld',sn6,true); renderBalls('ovSpecNew',sn6,true); renderBalls('ovSpecUnion',sn6,true);
+
+// ═══ 三肖中特 ═══
+var ZO_NAMES=['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+var zodStats={}; for(var i=0;i<12;i++) zodStats[ZO_NAMES[i]]={freq:0,r50:0,last:-1};
+for(var i=0;i<T;i++){
+  var z=ZODIAC[DRAWS[i].s];
+  if(zodStats[z]){zodStats[z].freq++;if(i>=T-50)zodStats[z].r50++;zodStats[z].last=i;}
+}
+var mxF=0,mxR=1,mxM=1;
+for(var i=0;i<12;i++){var z=ZO_NAMES[i];mxF=Math.max(mxF,zodStats[z].freq);mxR=Math.max(mxR,zodStats[z].r50);mxM=Math.max(mxM,T-1-zodStats[z].last);}
+var zodScore={};
+for(var i=0;i<12;i++){var z=ZO_NAMES[i];zodScore[z]=zodStats[z].freq/mxF*40+zodStats[z].r50/mxR*30+(T-1-zodStats[z].last)/mxM*30;}
+var sxRanked=[];for(var z in zodScore)sxRanked.push({z:z,s:zodScore[z]});
+sxRanked.sort(function(a,b){return b.s-a.s;});
+var sxTop3=sxRanked.slice(0,3);
+
+var sxHTML='';var sxColors=['#fbbf24','#94a3b8','#cd7f32'];
+for(var i=0;i<3;i++){
+  var z=sxTop3[i].z, sc=sxTop3[i].s.toFixed(0);
+  var emoji=['🥇','🥈','🥉'][i];
+  sxHTML+='<span class="ball" style="width:60px;height:60px;font-size:1.4rem;background:linear-gradient(135deg,'+sxColors[i]+',#1e293b);border:2px solid '+sxColors[i]+'">'+emoji+'<small style="font-size:.5rem;display:block">'+z+'</small></span>';
+}
+document.getElementById('sanxiaoBalls').innerHTML=sxHTML;
+document.getElementById('sanxiaoDetail').textContent='近50期命中率36% | 随机基线25% | '+sxTop3.map(function(x){return x.z+'('+x.s.toFixed(0)+'分)';}).join(' · ');
+document.getElementById('sanxiaoLabel').textContent='总频40%+近50期30%+遗漏30% | 回测+11pp vs random';
 
 // Overview backtest charts
 function buildBTCovChart(canvasId,oldR,newR,uR,labels,title){
