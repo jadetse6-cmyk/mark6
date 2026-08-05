@@ -318,16 +318,6 @@ var snRank=rankScores(specScore);
 var fn6=fnRank.slice(0,6).map(function(x){return x.n;});
 var fo6=foRank.slice(0,6).map(function(x){return x.n;});
 var sn6=snRank.slice(0,6).map(function(x){return x.n;});
-// Union strategy: linear top3 + zodiac top2x3
-var linTop3=snRank.slice(0,3).map(function(x){return x.n;});
-var uniSpec6=linTop3.slice();
-for(var zi=0;zi<Math.min(3,sxRanked.length);zi++){
-  var znums=[];
-  for(var n=1;n<50;n++){if(ZODIAC[n]===sxRanked[zi].z)znums.push({n:n,s:specScore[n].total});}
-  znums.sort(function(a,b){return b.s-a.s;});
-  for(var j=0;j<Math.min(2,znums.length);j++){if(uniSpec6.indexOf(znums[j].n)<0)uniSpec6.push(znums[j].n);}
-}
-uniSpec6=uniSpec6.slice(0,6);
 var uf10=unionTop(flatOld,flatNew,10);
 var us6=unionTop(specScore,specScore,6);
 
@@ -348,7 +338,8 @@ function renderBalls(el,nums,isSpec){
   document.getElementById(el).innerHTML=h;
 }
 renderBalls('ovFlatOld',fo6); renderBalls('ovFlatNew',fn6); renderBalls('ovFlatUnion',uf10);
-renderBalls('ovSpecOld',sn6,true); renderBalls('ovSpecNew',uniSpec6,true); renderBalls('ovSpecUnion',uniSpec6,true);
+renderBalls('ovSpecOld',sn6,true); renderBalls('ovSpecNew',sn6,true); renderBalls('ovSpecUnion',sn6,true);
+// (updated to uniSpec6 after union calc below)
 
 // ═══ 三肖中特 ═══
 var ZO_NAMES=['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
@@ -364,6 +355,18 @@ for(var i=0;i<12;i++){var z=ZO_NAMES[i];zodScore[z]=zodStats[z].freq/mxF*50+zodS
 var sxRanked=[];for(var z in zodScore)sxRanked.push({z:z,s:zodScore[z]});
 sxRanked.sort(function(a,b){return b.s-a.s;});
 var sxTop3=sxRanked.slice(0,3);
+
+// Union special: linear top3 + zodiac top2x3
+var linTop3=snRank.slice(0,3).map(function(x){return x.n;});
+var uniSpec6=linTop3.slice();
+for(var zi=0;zi<3;zi++){
+  var znums=[];
+  for(var n=1;n<50;n++){if(ZODIAC[n]===sxRanked[zi].z)znums.push({n:n,s:specScore[n].total});}
+  znums.sort(function(a,b){return b.s-a.s;});
+  for(var j=0;j<Math.min(2,znums.length);j++){if(uniSpec6.indexOf(znums[j].n)<0)uniSpec6.push(znums[j].n);}
+}
+uniSpec6=uniSpec6.slice(0,6);
+renderBalls('ovSpecNew',uniSpec6,true); renderBalls('ovSpecUnion',uniSpec6,true);
 
 var sxHTML='';var sxColors=['#fbbf24','#94a3b8','#cd7f32'];
 for(var i=0;i<3;i++){
