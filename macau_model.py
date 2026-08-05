@@ -94,12 +94,15 @@ def score_special(stats, rotation, T, draws=None):
         zod_sc={z:v['freq']/mx_f*50+v['r50']/mx_r*30+(T-1-v['last'])/mx_m*20 for z,v in zod.items()}
         top3_zod = set(z for z,_ in sorted(zod_sc.items(),key=lambda x:x[1],reverse=True)[:3])
 
-        # Within top3 zodiacs, pick 2 best numbers each
-        picks = set()
+        # Union: linear top3 + zodiac top2×3 = diversity (近18期50% vs 39%)
+        lin_top = set(n for n,_ in sorted([(n,linear_score(n)) for n in range(1,50)],
+                                          key=lambda x:-x[1])[:3])
+        zod_top = set()
         for z in top3_zod:
             znums = [(n,linear_score(n)) for n in range(1,50) if ZODIAC.get(n,'?')==z]
             znums.sort(key=lambda x:-x[1])
-            picks.update(n for n,_ in znums[:2])
+            zod_top.update(n for n,_ in znums[:2])
+        picks = lin_top | zod_top
     else:
         # Fallback: pure linear top6
         picks = set(n for n,_ in sorted([(n,linear_score(n)) for n in range(1,50)],
