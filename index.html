@@ -67,7 +67,7 @@ tr:hover{background:#1e293b}
 
 <!-- ═══ OVERVIEW ═══ -->
 <div id="tab-overview">
-<h2>🏆 217期 推荐组合</h2>
+<h2>🏆 <span id="curIssue"></span>期 推荐组合</h2>
 <div class="pick-row">
 <div class="pick-box alt"><h4>📊 综合 Top6</h4><div class="label">频14+漏29+动24+加18+位15</div><div class="balls" id="ovFlatOld"></div></div>
 <div class="pick-box"><h4>🔄 动量 Top6</h4><div class="label">频15+漏15+动45+轮5+位10+加10</div><div class="balls" id="ovFlatNew"></div></div>
@@ -287,6 +287,7 @@ function segStats(arr,cand){
 var T=DRAWS.length;
 var nextIssue=String(parseInt(DRAWS[T-1].i)+1);
 document.getElementById('nextIssue').textContent=nextIssue;
+document.getElementById('curIssue').textContent=nextIssue;
 
 // Compute
 var st=computeStats(DRAWS), rt=rotationSignal(st,T);
