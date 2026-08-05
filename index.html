@@ -379,7 +379,7 @@ var lxMx50=Math.max.apply(null,Object.values(lxZ50))||1;
 var lxMx30=Math.max.apply(null,Object.values(lxZ30))||1;
 var lxMx15=Math.max.apply(null,Object.values(lxZ15))||1;
 var lxSc={};
-for(var i=0;i<12;i++){var z3=ZO_NAMES[i];lxSc[z3]=lxZt[z3]/lxMxT*30+lxZ50[z3]/lxMx50*30+lxZ30[z3]/lxMx30*20+lxZ15[z3]/lxMx15*20;}
+for(var i=0;i<12;i++){var z3=ZO_NAMES[i];lxSc[z3]=lxZt[z3]/lxMxT*60+lxZ15[z3]/lxMx15*30+lxZ50[z3]/lxMx50*10;}
 var lxRanked=[];
 for(var z3 in lxSc)lxRanked.push({z:z3,s:lxSc[z3]});
 lxRanked.sort(function(a,b){return b.s-a.s;});
@@ -387,10 +387,10 @@ lxRanked.sort(function(a,b){return b.s-a.s;});
 document.getElementById('lx2').textContent=lxRanked[0].z+'·'+lxRanked[1].z;
 document.getElementById('lx3').textContent=lxRanked[0].z+'·'+lxRanked[1].z+'·'+lxRanked[2].z;
 document.getElementById('lx4').textContent=lxRanked[0].z+'·'+lxRanked[1].z+'·'+lxRanked[2].z+'·'+lxRanked[3].z;
-document.getElementById('lx2rate').textContent='近50期26%';
-document.getElementById('lx3rate').textContent='近50期12%';
-document.getElementById('lx4rate').textContent='近50期4%';
-document.getElementById('lianxiaoLabel').textContent='平+特生肖热度 | 连2(26%) 连3(12%) 5肖>=1(100%)';
+document.getElementById('lx2rate').textContent='近50期28%';
+document.getElementById('lx3rate').textContent='近50期14%';
+document.getElementById('lx4rate').textContent='近50期6%';
+document.getElementById('lianxiaoLabel').textContent='平+特 总频60%+近15 30%+近50 10% | 5肖>=1(100%)';
 
 // Overview backtest charts
 function buildBTCovChart(canvasId,oldR,newR,uR,labels,title){
