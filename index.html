@@ -350,7 +350,7 @@ for(var i=0;i<T;i++){
 var mxF=0,mxR=1,mxM=1;
 for(var i=0;i<12;i++){var z=ZO_NAMES[i];mxF=Math.max(mxF,zodStats[z].freq);mxR=Math.max(mxR,zodStats[z].r50);mxM=Math.max(mxM,T-1-zodStats[z].last);}
 var zodScore={};
-for(var i=0;i<12;i++){var z=ZO_NAMES[i];zodScore[z]=zodStats[z].freq/mxF*40+zodStats[z].r50/mxR*30+(T-1-zodStats[z].last)/mxM*30;}
+for(var i=0;i<12;i++){var z=ZO_NAMES[i];zodScore[z]=zodStats[z].freq/mxF*50+zodStats[z].r50/mxR*30+(T-1-zodStats[z].last)/mxM*20;}
 var sxRanked=[];for(var z in zodScore)sxRanked.push({z:z,s:zodScore[z]});
 sxRanked.sort(function(a,b){return b.s-a.s;});
 var sxTop3=sxRanked.slice(0,3);
