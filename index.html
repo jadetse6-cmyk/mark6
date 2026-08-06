@@ -382,9 +382,9 @@ document.getElementById('sanxiaoDetail').textContent='近50期命中率36% | 随
 document.getElementById('sanxiaoLabel').textContent='总频40%+近50期30%+遗漏30% | 回测+11pp vs random';
 
 // ═══ 近8期特码回顾 ═══
-var revHTML='<tr><th>期号</th><th>特码</th><th>线性Top3</th><th>并集Top6</th><th>三肖</th><th>线</th><th>并</th><th>肖</th></tr>';
+var revHTML='<tr><th>期号</th><th>特码</th><th>综合Top6</th><th>三肖</th><th>综</th><th>肖</th></tr>';
 var revN=Math.min(8,T);
-var revLinH=0,revUniH=0,revSxH=0;
+var revLinH=0,revSxH=0;
 for(var ri=T-revN;ri<T;ri++){
   var trD=DRAWS.slice(0,ri),teD=DRAWS[ri],tlt=trD.length;
   var st2={};for(var n=1;n<50;n++)st2[n]={sc:0,sl:null};
@@ -392,8 +392,8 @@ for(var ri=T-revN;ri<T;ri++){
   var mxsc2=0,mxsm2=0;
   for(var n=1;n<50;n++){mxsc2=Math.max(mxsc2,st2[n].sc);var ms2=tlt-1-(st2[n].sl!=null?st2[n].sl:tlt);mxsm2=Math.max(mxsm2,ms2);}
   var linsc=function(n){var ms3=tlt-1-(st2[n].sl!=null?st2[n].sl:tlt);return st2[n].sc/mxsc2*100*0.30+ms3/mxsm2*100*0.50;};
-  var l3=[];for(var n=1;n<50;n++)l3.push({n:n,s:linsc(n)});l3.sort(function(a,b){return b.s-a.s;});
-  var l6=l3.slice(0,6).map(function(x){return x.n;});
+  var l6=[];for(var n=1;n<50;n++)l6.push({n:n,s:linsc(n)});l6.sort(function(a,b){return b.s-a.s;});
+  var l6n=l6.slice(0,6).map(function(x){return x.n;});
 
   var zf2={},z502={},last2={};
   for(var i=0;i<12;i++){zf2[ZO_NAMES[i]]=0;z502[ZO_NAMES[i]]=0;last2[ZO_NAMES[i]]=-1;}
@@ -405,14 +405,13 @@ for(var ri=T-revN;ri<T;ri++){
   var top3z2=sxr.slice(0,3).map(function(x){return x.z;});
 
   var actual=teD.s,actualZ=ZODIAC[actual];
-  var lh=l3.slice(0,3).some(function(x){return x.n==actual;});
-  var uh=l6.indexOf(actual)>=0;
+  var lh=l6n.indexOf(actual)>=0;
   var sh=top3z2.indexOf(actualZ)>=0;
-  if(lh)revLinH++;if(uh)revUniH++;if(sh)revSxH++;
+  if(lh)revLinH++;if(sh)revSxH++;
 
-  revHTML+='<tr><td>'+teD.i+'</td><td>'+actual+'('+actualZ+')</td><td>'+l3[0].n.toString().padStart(2,'0')+l3[1].n.toString().padStart(2,'0')+l3[2].n.toString().padStart(2,'0')+'</td><td>'+l6.map(function(x){return x.toString().padStart(2,'0');}).join(' ')+'</td><td>'+top3z2.join('')+'</td><td>'+(lh?'✅':'❌')+'</td><td>'+(uh?'✅':'❌')+'</td><td>'+(sh?'✅':'❌')+'</td></tr>';
+  revHTML+='<tr><td>'+teD.i+'</td><td>'+actual+'('+actualZ+')</td><td>'+l6n.map(function(x){return x.toString().padStart(2,'0');}).join(' ')+'</td><td>'+top3z2.join('')+'</td><td>'+(lh?'✅':'❌')+'</td><td>'+(sh?'✅':'❌')+'</td></tr>';
 }
-revHTML+='<tr><td class="score-cell">合计</td><td></td><td></td><td></td><td></td><td class="score-cell">'+revLinH+'/'+revN+'</td><td class="score-cell">'+revUniH+'/'+revN+'</td><td class="score-cell">'+revSxH+'/'+revN+'</td></tr>';
+revHTML+='<tr><td class="score-cell">合计</td><td></td><td></td><td></td><td class="score-cell">'+revLinH+'/'+revN+'</td><td class="score-cell">'+revSxH+'/'+revN+'</td></tr>';
 document.getElementById('specReview').innerHTML=revHTML;
 
 // ═══ 连肖 (平+特) ═══
