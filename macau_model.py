@@ -38,7 +38,7 @@ def compute_raw_stats(draws):
     """返回 {num: {flat_count, spec_count, flat_last_idx, spec_last_idx, flat_last50, flat_last30}}"""
     T = len(draws)
     stats = {n: {'flat_count':0,'spec_count':0,'flat_last':None,'spec_last':None,
-                 'flat_50':0,'flat_30':0,'flat_pos':{p:0 for p in range(1,7)}}
+                 'flat_50':0,'flat_30':0,'flat_5':0,'flat_pos':{p:0 for p in range(1,7)}}
              for n in range(1,50)}
 
     for idx, d in enumerate(draws):
@@ -49,6 +49,7 @@ def compute_raw_stats(draws):
             s['flat_pos'][pos] += 1
             if idx >= T - 50: s['flat_50'] += 1
             if idx >= T - 30: s['flat_30'] += 1
+            if idx >= T - 5: s['flat_5'] += 1
 
         sn = d['special']
         stats[sn]['spec_count'] += 1
@@ -217,6 +218,9 @@ def score_flat(stats, rotation, T):
         else:
             acc_s = 0
 
+        # Contrarian: if >3 in last 5 draws, apply 20% penalty (近50+0.10/期)
+        f5_count = stats[n]['flat_5'] if 'flat_5' in stats[n] else 0
+        if f5_count >= 3: mom_s *= 0.80
         total = fc_s * 0.15 + miss_s * 0.15 + mom_s * 0.50 + pos_s * 0.10 + acc_s * 0.10
         scores[n] = {'total': round(total, 1), 'freq': round(fc_s, 1),
                      'miss': miss_raw, 'r30': s['flat_30'],
