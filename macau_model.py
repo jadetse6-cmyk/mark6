@@ -182,7 +182,7 @@ def score_special_ensemble(stats, rotation, T, top_n=8):
 
 # ── 平码评分 ──────────────────────────────────────────
 def score_flat(stats, rotation, T):
-    """平码综合 = 频15%+漏15%+动45%+轮5%+位10%+加10% (动量绝对主导)"""
+    """平码综合 = 频15%+漏15%+动50%+位10%+加10% (纯动量,去轮转)"""
     max_fc = max(s['flat_count'] for s in stats.values())
     max_miss = max(T - 1 - (s['flat_last'] or 0) for s in stats.values())
     max_r30 = max(s['flat_30'] for s in stats.values())
@@ -217,7 +217,7 @@ def score_flat(stats, rotation, T):
         else:
             acc_s = 0
 
-        total = fc_s * 0.15 + miss_s * 0.15 + mom_s * 0.45 + rot_s * 0.05 + pos_s * 0.10 + acc_s * 0.10
+        total = fc_s * 0.15 + miss_s * 0.15 + mom_s * 0.50 + pos_s * 0.10 + acc_s * 0.10
         scores[n] = {'total': round(total, 1), 'freq': round(fc_s, 1),
                      'miss': miss_raw, 'r30': s['flat_30'],
                      'acc': round(acc_s, 1), 'rot': rot_s, 'pos': round(pos_s, 1)}
@@ -523,8 +523,8 @@ tr:hover{{background:#1e293b}}
   <div class="balls" id="flatBallsOld"></div>
 </div>
 <div class="pick-box">
-  <h4>🔄 动量Top6 (最优)</h4>
-  <div class="label">频15%+漏15%+动45%+轮5%+位10%+加10% | 覆盖{cov_lz}%</div>
+  <h4>🔄 动量Top6 (去轮转)</h4>
+  <div class="label">频15%+漏15%+动50%+位10%+加10% | 覆盖{cov_lz}%</div>
   <div class="balls" id="flatBalls"></div>
 </div>
 <div class="pick-box" style="border-color:#34d399;background:linear-gradient(135deg,#1e293b,#064e3b)">
