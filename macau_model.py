@@ -741,7 +741,7 @@ def main():
     mx_f=max(v['freq'] for v in zod.values()) or 1
     mx_r=max(v['r50'] for v in zod.values()) or 1
     mx_m=max(T-1-v['last'] for v in zod.values()) or 1
-    zod_sc={z:v['freq']/mx_f*40+v['r50']/mx_r*30+(T-1-v['last'])/mx_m*30 for z,v in zod.items()}
+    zod_sc={z:v['freq']/mx_f*50+v['r50']/mx_r*30+(T-1-v['last'])/mx_m*20 for z,v in zod.items()}
     sanxiao = [z for z,_ in sorted(zod_sc.items(),key=lambda x:x[1],reverse=True)[:3]]
 
     print("\n[4/5] 生成HTML看板...")
