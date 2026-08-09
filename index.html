@@ -453,7 +453,9 @@ for(var ti=T-tierN;ti<=T;ti++){
   if(count>0){tierHot.push((hh/count*100));tierMid.push((mh/count*100));tierCold.push((ch/count*100));}
 }
 	// 15-position grid: 前1-5 中1-5 尾1-5, hit=lit+number
-	var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
+	
+var WAVE={1:'#f87171',2:'#f87171',3:'#60a5fa',4:'#60a5fa',5:'#34d399',6:'#34d399',7:'#f87171',8:'#f87171',9:'#60a5fa',10:'#60a5fa',11:'#34d399',12:'#f87171',13:'#f87171',14:'#60a5fa',15:'#60a5fa',16:'#34d399',17:'#34d399',18:'#f87171',19:'#f87171',20:'#60a5fa',21:'#34d399',22:'#34d399',23:'#f87171',24:'#f87171',25:'#60a5fa',26:'#60a5fa',27:'#34d399',28:'#34d399',29:'#f87171',30:'#f87171',31:'#60a5fa',32:'#34d399',33:'#34d399',34:'#f87171',35:'#f87171',36:'#60a5fa',37:'#60a5fa',38:'#34d399',39:'#34d399',40:'#f87171',41:'#60a5fa',42:'#60a5fa',43:'#34d399',44:'#34d399',45:'#f87171',46:'#f87171',47:'#60a5fa',48:'#60a5fa',49:'#34d399'};
+var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
 	var psum2=Array(15).fill(0);
 	var htm2='<table style="font-size:.6rem;border-collapse:collapse"><tr style="color:#94a3b8"><th rowspan="2">期号</th><th colspan="5" style="color:#f87171">🔥前段</th><th colspan="5" style="color:#fbbf24">⚡中段</th><th colspan="5" style="color:#60a5fa">❄️尾段</th></tr>';
 	htm2+='<tr style="color:#94a3b8;font-size:.45rem">';
@@ -468,7 +470,7 @@ for(var ti=T-tierN;ti<=T;ti++){
 	  var lr=[];for(var n=1;n<50;n++)lr.push({n:n,s:lf(n)});lr.sort(function(a,b){return b.s-a.s;});
 	  var actual=teD2.s,hi2=-1;for(var k=0;k<15;k++)if(lr[k].n==actual)hi2=k;
 	  htm2+='<tr><td style="padding:3px 6px">'+DRAWS[ti].i.substring(4)+'</td>';
-	  for(var p=0;p<15;p++){var hit=(p==hi2);if(hit)psum2[p]++;var bg=hit?pc[p]:'transparent';htm2+='<td style="text-align:center;padding:3px 5px;background:'+bg+';'+(hit?'color:#000;font-weight:700;border-radius:50%;width:28px;height:28px':'color:#334155')+'">'+(hit?actual:'·')+'</td>';}
+	  for(var p=0;p<15;p++){var hit=(p==hi2);if(hit)psum2[p]++;var wc=hit?WAVE[actual]:'transparent';var ball2=hit?'<span class="ball" style="width:28px;height:28px;font-size:.7rem;background:'+wc+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span>':'<span style="color:#334155;font-size:.5rem">·</span>';htm2+='<td style="text-align:center;padding:4px 6px">'+ball2+'</td>';}
 	  htm2+='</tr>';
 	}
 	htm2+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:3px 6px">命中</td>';
