@@ -496,14 +496,14 @@ var plf=function(n){var m3=T-1-(nst2[n].sl||T);return nst2[n].sc/pmxs*100*0.30+m
 var plr=[];for(var n=1;n<50;n++)plr.push({n:n,s:plf(n)});plr.sort(function(a,b){return b.s-a.s;});
 var pred6=plr.slice(0,6).map(function(x){return x.n;});
 
-htm2+='<tr style="background:#1a2332"><td style="color:#fbbf24;font-weight:700;padding:4px 8px">'+nextIssue+'期预测</td>';
+htm2+='<tr style="background:#1a2332"><td style="color:#fbbf24;font-weight:700;padding:4px 8px">'+nextIssue+'期</td>';
 for(var p=0;p<15;p++){
   var sep3=(p==4||p==9)?'border-right:2px solid #334155;':'';
   var pn=pred6.indexOf(plr[p].n)>=0;
   if(pn)htm2+='<td style="text-align:center;padding:3px 5px;'+sep3+'"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[plr[p].n]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+plr[p].n+'</span></td>';
-  else htm2+='<td style="text-align:center;padding:3px 5px;color:#334155;'+sep3+'">·</td>';
+  else htm2+='<td style="text-align:center;padding:3px 5px;color:#94a3b8;'+sep3+'">'+plr[p].n+'</td>';
 }
-htm2+='<td style="text-align:center;padding:3px 5px"><span style="color:#fbbf24;font-size:.5rem">Top6</span></td></tr>';
+htm2+='<td style="text-align:center;padding:3px 5px"><span style="color:#fbbf24;font-size:.5rem">Top6波色</span></td></tr>';
 htm2+='</table>';
 document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (近20期 · 1-5=段内排位)</h3>'+htm2;
 
