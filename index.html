@@ -98,7 +98,10 @@ tr:hover{background:#1e293b}
 </div>
 </div>
 
-<h2>🔵 近10期特码回顾</h2>
+<h2>📈 三段命中趋势 (近10期)</h2>
+<div class="card"><canvas id="tierChart" style="max-height:200px"></canvas></div>
+
+<h2>🔵 近20期特码回顾</h2>
 <div class="card"><table id="specReview"></table></div>
 
 <h2>📊 回测快览</h2>
@@ -423,6 +426,37 @@ for(var ri=T-revN;ri<T;ri++){
 }
 revHTML+='<tr><td class="score-cell">合计</td><td></td><td></td><td></td><td></td><td></td><td class="score-cell">'+revH1+'/'+revN+'</td><td class="score-cell">'+revH2+'/'+revN+'</td><td class="score-cell">'+revH3+'/'+revN+'</td><td class="score-cell">'+revSxH+'/'+revN+'</td></tr>';
 document.getElementById('specReview').innerHTML=revHTML;
+
+// Tier trend chart: rolling 10-draw hit rate
+var tierN=20,tierLabels=[],tierHot=[],tierMid=[],tierCold=[];
+for(var ti=T-tierN;ti<=T;ti++){
+  if(ti<T)tierLabels.push(DRAWS[ti].i);
+  var hh=0,mh=0,ch=0,count=0;
+  for(var tj=Math.max(0,ti-10);tj<Math.min(ti,T);tj++){
+    if(tj>=T-tierN){
+      var ttD=DRAWS.slice(0,tj),teD2=DRAWS[tj],tlt2=ttD.length;
+      var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
+      for(var i=0;i<tlt2;i++){var sn3=ttD[i].s;st3[sn3].sc++;st3[sn3].sl=i;}
+      var mxsc3=0,mxsm3=0;
+      for(var n=1;n<50;n++){mxsc3=Math.max(mxsc3,st3[n].sc);var ms3=tlt2-1-(st3[n].sl!=null?st3[n].sl:tlt2);mxsm3=Math.max(mxsm3,ms3);}
+      var lf=function(n){var ms4=tlt2-1-(st3[n].sl!=null?st3[n].sl:tlt2);return st3[n].sc/mxsc3*100*0.30+ms4/mxsm3*100*0.50;};
+      var lr2=[];for(var n=1;n<50;n++)lr2.push({n:n,s:lf(n)});lr2.sort(function(a,b){return b.s-a.s;});
+      var h5=lr2.slice(0,5).map(function(x){return x.n;});
+      var m5=lr2.slice(5,10).map(function(x){return x.n;});
+      var c5=lr2.slice(10,15).map(function(x){return x.n;});
+      count++;
+      if(h5.indexOf(teD2.s)>=0)hh++;
+      if(m5.indexOf(teD2.s)>=0)mh++;
+      if(c5.indexOf(teD2.s)>=0)ch++;
+    }
+  }
+  if(count>0){tierHot.push((hh/count*100));tierMid.push((mh/count*100));tierCold.push((ch/count*100));}
+}
+new Chart(document.getElementById('tierChart'),{type:'bar',data:{labels:tierLabels.slice(-15),datasets:[
+  {label:'🔥前段',data:tierHot.slice(-15),backgroundColor:'#f87171',borderRadius:3},
+  {label:'⚡中段',data:tierMid.slice(-15),backgroundColor:'#fbbf24',borderRadius:3},
+  {label:'❄️尾段',data:tierCold.slice(-15),backgroundColor:'#60a5fa',borderRadius:3}
+]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'top',labels:{color:TC,font:{size:9}}},title:{display:true,text:'滚动10期命中率 (%)',color:TC,font:{size:10}}},scales:{x:{ticks:{color:TC,font:{size:7}},grid:{color:DG}},y:{ticks:{color:TC,callback:function(v){return v+'%'}},grid:{color:DG},max:100}}}});
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
