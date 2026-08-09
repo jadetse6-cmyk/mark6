@@ -457,7 +457,7 @@ var posNames=['前1','前2','前3','前4','前5','中1','中2','中3','中4','�
 var posColors=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
 var posHTML='<div style=\"display:flex;gap:2px;align-items:flex-start\"><div style=\"text-align:right;font-size:.45rem;color:#94a3b8;line-height:1.65;padding-top:12px;min-width:32px\">';
 var posData=[];
-for(var ti=T-40;ti<T;ti++){
+for(var ti=T-20;ti<T;ti++){
   var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
   var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
   for(var i=0;i<tlt2;i++){var sn3=ttD[i].s;st3[sn3].sc++;st3[sn3].sl=i;}
@@ -491,7 +491,7 @@ posHTML+='<div style=\"text-align:right;font-size:.45rem;color:#94a3b8;line-heig
 for(var ri=0;ri<posData.length;ri++){var n=posData[ri].n;posHTML+=n+'<br>';}
 posHTML+='特码</div></div>';
 
-document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中趋势 (近40期 · 有色=命中 · 前1-5/中1-5/尾1-5)</h3>'+posHTML;
+document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中趋势 (近20期 · 有色=命中 · 前1-5/中1-5/尾1-5)</h3>'+posHTML;
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
