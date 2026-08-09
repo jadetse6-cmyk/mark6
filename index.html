@@ -475,15 +475,15 @@ posHTML+='</div>';
 
 // 15 position columns
 for(var ci=0;ci<15;ci++){
-  posHTML+='<div style=\"text-align:center\"><div style=\"font-size:.4rem;color:'+posColors[ci]+';font-weight:700;margin-bottom:2px;width:14px\">'+posNames[ci]+'</div>';
+  posHTML+='<div style=\"text-align:center\">';
   var ch=0;
   for(var ri=0;ri<posData.length;ri++){
     var hit=posData[ri].p==ci;
     var bg=hit?posColors[ci]:'#0f172a';var border=hit?posColors[ci]:'#1e293b';
     if(hit)ch++;
-    posHTML+='<div style=\"width:12px;height:12px;margin:1px 0;background:'+bg+';border:1px solid '+border+';border-radius:2px\"></div>';
+    posHTML+='<div style=\"width:14px;height:14px;margin:1px 0;background:'+bg+';border:1px solid '+border+';border-radius:2px\"></div>';
   }
-  posHTML+='<div style=\"font-size:.4rem;color:'+posColors[ci]+';margin-top:2px\">'+ch+'</div></div>';
+  posHTML+='<div style=\"font-size:.55rem;color:'+posColors[ci]+';font-weight:700;margin-top:4px\">'+posNames[ci]+'<br>'+ch+'</div></div>';
 }
 
 // Legend
@@ -491,7 +491,7 @@ posHTML+='<div style=\"text-align:right;font-size:.45rem;color:#94a3b8;line-heig
 for(var ri=0;ri<posData.length;ri++){var n=posData[ri].n;posHTML+=n+'<br>';}
 posHTML+='特码</div></div>';
 
-document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中趋势 (近20期 · 有色=命中 · 前1-5/中1-5/尾1-5)</h3>'+posHTML;
+document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中趋势 (近20期)</h3>'+posHTML;
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
