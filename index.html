@@ -452,46 +452,26 @@ for(var ti=T-tierN;ti<=T;ti++){
   }
   if(count>0){tierHot.push((hh/count*100));tierMid.push((mh/count*100));tierCold.push((ch/count*100));}
 }
-// Position trend: 前段5pos + 中段5pos + 尾段5pos = 15 columns, lit=hit
-var posNames=['前1','前2','前3','前4','前5','中1','中2','中3','中4','中5','尾1','尾2','尾3','尾4','尾5'];
-var posColors=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
-var posHTML='<div style=\"display:flex;gap:2px;align-items:flex-start\"><div style=\"text-align:right;font-size:.45rem;color:#94a3b8;line-height:1.65;padding-top:12px;min-width:32px\">';
-var posData=[];
-for(var ti=T-20;ti<T;ti++){
-  var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
-  var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
-  for(var i=0;i<tlt2;i++){var sn3=ttD[i].s;st3[sn3].sc++;st3[sn3].sl=i;}
-  var mxsc3=0,mxsm3=0;
-  for(var n=1;n<50;n++){mxsc3=Math.max(mxsc3,st3[n].sc);var ms3=tlt2-1-(st3[n].sl!=null?st3[n].sl:tlt2);mxsm3=Math.max(mxsm3,ms3);}
-  var lf=function(n){var ms4=tlt2-1-(st3[n].sl!=null?st3[n].sl:tlt2);return st3[n].sc/mxsc3*100*0.30+ms4/mxsm3*100*0.50;};
-  var lr2=[];for(var n=1;n<50;n++)lr2.push({n:n,s:lf(n)});lr2.sort(function(a,b){return b.s-a.s;});
-  var all15=lr2.slice(0,15).map(function(x){return x.n;});
-  var actual=teD2.s;
-  var posIdx=all15.indexOf(actual);
-  posData.push({i:DRAWS[ti].i,n:actual,p:posIdx});
-  posHTML+=DRAWS[ti].i.substring(4)+'<br>';
-}
-posHTML+='</div>';
-
-// 15 position columns
-for(var ci=0;ci<15;ci++){
-  posHTML+='<div style=\"text-align:center\">';
-  var ch=0;
-  for(var ri=0;ri<posData.length;ri++){
-    var hit=posData[ri].p==ci;
-    var bg=hit?posColors[ci]:'#0f172a';var border=hit?posColors[ci]:'#1e293b';
-    if(hit)ch++;
-    posHTML+='<div style=\"width:14px;height:14px;margin:1px 0;background:'+bg+';border:1px solid '+border+';border-radius:2px\"></div>';
-  }
-  posHTML+='<div style=\"font-size:.55rem;color:'+posColors[ci]+';font-weight:700;margin-top:4px\">'+posNames[ci]+'<br>'+ch+'</div></div>';
-}
-
-// Legend
-posHTML+='<div style=\"text-align:right;font-size:.45rem;color:#94a3b8;line-height:1.65;padding-top:12px\">';
-for(var ri=0;ri<posData.length;ri++){var n=posData[ri].n;posHTML+=n+'<br>';}
-posHTML+='特码</div></div>';
-
-document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中趋势 (近20期)</h3>'+posHTML;
+	// Clean table format
+	var posHTML2='<table style="font-size:.6rem;border-collapse:collapse;width:100%"><tr style="color:#94a3b8"><th style="padding:3px 5px">期号</th><th>特码</th><th colspan="5" style="color:#f87171">🔥前段</th><th colspan="5" style="color:#fbbf24">⚡中段</th><th colspan="5" style="color:#60a5fa">❄️尾段</th></tr>';
+	var pc3=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
+	var psum=Array(15).fill(0);
+	for(var ti=T-20;ti<T;ti++){
+	  var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
+	  var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
+	  for(var i=0;i<tlt2;i++){var sn=ttD[i].s;st3[sn].sc++;st3[sn].sl=i;}
+	  var mxs=0,mxm2=0;for(var n=1;n<50;n++){mxs=Math.max(mxs,st3[n].sc);var ms=tlt2-1-(st3[n].sl||tlt2);mxm2=Math.max(mxm2,ms);}
+	  var lf=function(n){var m=tlt2-1-(st3[n].sl||tlt2);return st3[n].sc/mxs*100*0.30+m/mxm2*100*0.50;};
+	  var lr=[];for(var n=1;n<50;n++)lr.push({n:n,s:lf(n)});lr.sort(function(a,b){return b.s-a.s;});
+	  var actual=teD2.s,hi=-1;for(var k=0;k<15;k++)if(lr[k].n==actual)hi=k;
+	  posHTML2+='<tr><td style="padding:3px 5px">'+DRAWS[ti].i.substring(4)+'</td><td class="num-cell">'+actual+'</td>';
+	  for(var p=0;p<15;p++){var hit=(p==hi);if(hit)psum[p]++;var bg=hit?pc3[p]:'transparent';posHTML2+='<td style="text-align:center;padding:2px 3px;background:'+bg+';'+(hit?'color:#000;font-weight:700;border-radius:4px':'color:#334155')+'">'+(hit?actual:'·')+'</td>';}
+	  posHTML2+='</tr>';
+	}
+	posHTML2+='<tr style="font-weight:700"><td colspan="2" style="color:#fbbf24;padding:3px 5px">命中</td>';
+	for(var p=0;p<15;p++)posHTML2+='<td style="text-align:center;color:'+pc3[p]+';padding:3px 3px">'+psum[p]+'</td>';
+	posHTML2+='</tr></table>';
+	document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (近20期)</h3>'+posHTML2;
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
