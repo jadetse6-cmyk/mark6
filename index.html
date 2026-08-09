@@ -462,7 +462,7 @@ var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#
 	var htm2='<table id="tierTable" style="font-size:.6rem;border-collapse:collapse"><tr style="color:#94a3b8"><th rowspan="2">期号</th><th colspan="5" style="color:#f87171">🔥前段</th><th colspan="5" style="color:#fbbf24">⚡中段</th><th colspan="5" style="color:#60a5fa">❄️尾段</th><th rowspan="2">特码</th></tr>';
 htm2+='<tr style="color:#94a3b8;font-size:.45rem">';
 for(var g=0;g<3;g++)for(var s=1;s<=5;s++)htm2+='<th>'+(g==0?'前':'')+(g==1?'中':'')+(g==2?'尾':'')+s+'</th>';
-htm2+='<td style="text-align:center;padding:3px 5px"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
+htm2+='<td style="text-align:center;padding:3px 5px;white-space:nowrap"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span> <span style="font-size:.55rem;color:#fbbf24">'+ZODIAC[actual]+'</span></td></tr>';
 var pc2=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
 var psum2=Array(15).fill(0);
 for(var ti=T-20;ti<T;ti++){
@@ -483,7 +483,7 @@ for(var ti=T-20;ti<T;ti++){
       htm2+='<td style="text-align:center;padding:3px 5px;color:#64748b;'+sep+'">·</td>';
     }
   }
-  htm2+='<td style="text-align:center;padding:3px 5px"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
+  htm2+='<td style="text-align:center;padding:3px 5px;white-space:nowrap"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span> <span style="font-size:.55rem;color:#fbbf24">'+ZODIAC[actual]+'</span></td></tr>';
 }
 htm2+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:3px 6px">命中</td>';
 for(var p=0;p<15;p++)htm2+='<td style="text-align:center;color:'+pc2[p]+';padding:3px 5px">'+psum2[p]+'</td>';
