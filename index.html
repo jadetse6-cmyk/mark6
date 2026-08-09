@@ -452,11 +452,11 @@ for(var ti=T-tierN;ti<=T;ti++){
   }
   if(count>0){tierHot.push((hh/count*100));tierMid.push((mh/count*100));tierCold.push((ch/count*100));}
 }
-// Tier trend heatmap: rows=draws, cols=前中尾, hit=lit, show actual number
-var tierNames2=['🔥前段','⚡中段','❄️尾段'];var tierColors2=['#f87171','#fbbf24','#60a5fa'];var tierKeys=['h','m','c'];
-var trendHTML='<div style=\"display:flex;gap:6px;align-items:flex-start;font-family:monospace\">';
-trendHTML+='<div style=\"text-align:right;font-size:.5rem;color:#94a3b8;line-height:1.65;padding-top:16px\">';
-var trendData=[];
+// Position trend: 前段5pos + 中段5pos + 尾段5pos = 15 columns, lit=hit
+var posNames=['前1','前2','前3','前4','前5','中1','中2','中3','中4','中5','尾1','尾2','尾3','尾4','尾5'];
+var posColors=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
+var posHTML='<div style=\"display:flex;gap:2px;align-items:flex-start\"><div style=\"text-align:right;font-size:.45rem;color:#94a3b8;line-height:1.65;padding-top:12px;min-width:32px\">';
+var posData=[];
 for(var ti=T-40;ti<T;ti++){
   var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
   var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
@@ -465,34 +465,33 @@ for(var ti=T-40;ti<T;ti++){
   for(var n=1;n<50;n++){mxsc3=Math.max(mxsc3,st3[n].sc);var ms3=tlt2-1-(st3[n].sl!=null?st3[n].sl:tlt2);mxsm3=Math.max(mxsm3,ms3);}
   var lf=function(n){var ms4=tlt2-1-(st3[n].sl!=null?st3[n].sl:tlt2);return st3[n].sc/mxsc3*100*0.30+ms4/mxsm3*100*0.50;};
   var lr2=[];for(var n=1;n<50;n++)lr2.push({n:n,s:lf(n)});lr2.sort(function(a,b){return b.s-a.s;});
-  var hot=lr2.slice(0,5).map(function(x){return x.n;}),mid=lr2.slice(5,10).map(function(x){return x.n;}),cold=lr2.slice(10,15).map(function(x){return x.n;});
-  var actual=teD2.s;var tierHits=[hot.indexOf(actual)>=0,mid.indexOf(actual)>=0,cold.indexOf(actual)>=0];
-  trendData.push({i:DRAWS[ti].i,n:actual,hits:tierHits});
-  trendHTML+=DRAWS[ti].i.substring(4)+'<br>';
+  var all15=lr2.slice(0,15).map(function(x){return x.n;});
+  var actual=teD2.s;
+  var posIdx=all15.indexOf(actual);
+  posData.push({i:DRAWS[ti].i,n:actual,p:posIdx});
+  posHTML+=DRAWS[ti].i.substring(4)+'<br>';
 }
-trendHTML+='</div>';
+posHTML+='</div>';
 
-// Color columns per tier
-for(var ci=0;ci<3;ci++){
-  trendHTML+='<div style=\"text-align:center\"><div style=\"font-size:.5rem;color:'+tierColors2[ci]+';font-weight:700;margin-bottom:4px\">'+tierNames2[ci]+'</div>';
-  for(var ri=0;ri<trendData.length;ri++){
-    var hit=trendData[ri].hits[ci];
-    var num=trendData[ri].n;
-    var bg=hit?tierColors2[ci]:'#0f172a';var border=hit?tierColors2[ci]:'#1e293b';
-    var txt=hit?num:'';
-    trendHTML+='<div style=\"width:24px;height:14px;border-radius:2px;margin:1px 0;background:'+bg+';border:1px solid '+border+';font-size:.45rem;color:#000;text-align:center;line-height:14px;font-weight:700\">'+txt+'</div>';
+// 15 position columns
+for(var ci=0;ci<15;ci++){
+  posHTML+='<div style=\"text-align:center\"><div style=\"font-size:.4rem;color:'+posColors[ci]+';font-weight:700;margin-bottom:2px;width:14px\">'+posNames[ci]+'</div>';
+  var ch=0;
+  for(var ri=0;ri<posData.length;ri++){
+    var hit=posData[ri].p==ci;
+    var bg=hit?posColors[ci]:'#0f172a';var border=hit?posColors[ci]:'#1e293b';
+    if(hit)ch++;
+    posHTML+='<div style=\"width:12px;height:12px;margin:1px 0;background:'+bg+';border:1px solid '+border+';border-radius:2px\"></div>';
   }
-  var th=0;for(var r=0;r<trendData.length;r++)if(trendData[r].hits[ci])th++;
-  trendHTML+='<div style=\"font-size:.5rem;color:'+tierColors2[ci]+';margin-top:2px\">'+th+'/'+trendData.length+'</div></div>';
+  posHTML+='<div style=\"font-size:.4rem;color:'+posColors[ci]+';margin-top:2px\">'+ch+'</div></div>';
 }
 
-// Legend: right side
-trendHTML+='<div style=\"text-align:right;font-size:.45rem;color:#94a3b8;line-height:1.65;padding-top:16px\">';
-for(var ri=0;ri<trendData.length;ri++)trendHTML+=trendData[ri].n+'<br>';
-trendHTML+='特码</div>';
+// Legend
+posHTML+='<div style=\"text-align:right;font-size:.45rem;color:#94a3b8;line-height:1.65;padding-top:12px\">';
+for(var ri=0;ri<posData.length;ri++){var n=posData[ri].n;posHTML+=n+'<br>';}
+posHTML+='特码</div></div>';
 
-trendHTML+='</div>';
-document.getElementById('tierChart').parentNode.innerHTML='<h3>三段命中趋势 (近40期 · 有色=命中 · 数字=特码)</h3>'+trendHTML;
+document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中趋势 (近40期 · 有色=命中 · 前1-5/中1-5/尾1-5)</h3>'+posHTML;
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
