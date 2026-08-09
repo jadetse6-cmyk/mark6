@@ -500,10 +500,9 @@ htm2+='<tr style="background:#1a2332"><td style="color:#fbbf24;font-weight:700;p
 for(var p=0;p<15;p++){
   var sep3=(p==4||p==9)?'border-right:2px solid #334155;':'';
   var pn=pred6.indexOf(plr[p].n)>=0;
-  if(pn)htm2+='<td style="text-align:center;padding:3px 5px;'+sep3+'"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[plr[p].n]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+plr[p].n+'</span></td>';
-  else htm2+='<td style="text-align:center;padding:3px 5px;color:#94a3b8;'+sep3+'">'+plr[p].n+'</td>';
+  htm2+='<td style="text-align:center;padding:3px 5px;'+sep3+'"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[plr[p].n]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+plr[p].n+'</span></td>';
 }
-htm2+='<td style="text-align:center;padding:3px 5px"><span style="color:#fbbf24;font-size:.5rem">Top6波色</span></td></tr>';
+htm2+='<td style="text-align:center;padding:3px 5px"><span style="color:#fbbf24;font-size:.5rem">15球预测</span></td></tr>';
 htm2+='</table>';
 document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (近20期 · 1-5=段内排位)</h3>'+htm2;
 
