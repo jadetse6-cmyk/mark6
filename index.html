@@ -489,6 +489,13 @@ htm2+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:3px 6px">命
 for(var p=0;p<15;p++)htm2+='<td style="text-align:center;color:'+pc2[p]+';padding:3px 5px">'+psum2[p]+'</td>';
 htm2+='<td></td></tr>';
 // Prediction row
+var nst2={};for(var n=1;n<50;n++)nst2[n]={sc:0,sl:null};
+for(var i=0;i<T;i++){var sn3=DRAWS[i].s;nst2[sn3].sc++;nst2[sn3].sl=i;}
+var pmxs=0,pmxm=0;for(var n=1;n<50;n++){pmxs=Math.max(pmxs,nst2[n].sc);var ms3=T-1-(nst2[n].sl||T);pmxm=Math.max(pmxm,ms3);}
+var plf=function(n){var m3=T-1-(nst2[n].sl||T);return nst2[n].sc/pmxs*100*0.30+m3/pmxm*100*0.50;};
+var plr=[];for(var n=1;n<50;n++)plr.push({n:n,s:plf(n)});plr.sort(function(a,b){return b.s-a.s;});
+var pred6=plr.slice(0,6).map(function(x){return x.n;});
+
 htm2+='<tr style="background:#1a2332"><td style="color:#fbbf24;font-weight:700;padding:4px 8px">'+nextIssue+'期预测</td>';
 for(var p=0;p<15;p++){
   var sep3=(p==4||p==9)?'border-right:2px solid #334155;':'';
