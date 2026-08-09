@@ -74,10 +74,9 @@ tr:hover{background:#1e293b}
 <div class="pick-box union"><h4>🔥 并集 Top10</h4><div class="label">综合∪动量 去重推荐</div><div class="balls" id="ovFlatUnion"></div></div>
 </div>
 <div class="pick-row">
-<div class="pick-box alt"><h4>🔵 综合特码 Top6</h4><div class="label">频30%+漏50%+近20%</div><div class="balls" id="ovSpecOld"></div></div>
-<div class="pick-box"><h4>🔄 并集特码 Top6</h4><div class="label">线性∪三肖(盲测32% vs 14%)</div><div class="balls" id="ovSpecNew"></div></div>
-<div class="pick-box union"><h4>🔥 并集特码 Top6</h4><div class="label">综合∪动量 去重</div><div class="balls" id="ovSpecUnion"></div></div>
-<div class="pick-box" style="border-color:#f59e0b;background:linear-gradient(135deg,#1e293b,#451a03)"><h4>🎯 混合 Top8</h4><div class="label">线性Top4∪三肖Top4</div><div class="balls" id="ovSpecHyb"></div></div>
+<div class="pick-box" style="border-color:#f87171"><h4>🔥 前段(热号) Top5</h4><div class="label">遗漏最长+频次最高</div><div class="balls" id="ovSpecHot"></div></div>
+<div class="pick-box" style="border-color:#fbbf24"><h4>⚡ 中段 Top5</h4><div class="label">中等遗漏过渡区</div><div class="balls" id="ovSpecMid"></div></div>
+<div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 尾段(冷号) Top5</h4><div class="label">候补冷号兜底</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 
 <h2>🐉 三肖中特</h2>
@@ -342,8 +341,8 @@ function renderBalls(el,nums,isSpec){
   document.getElementById(el).innerHTML=h;
 }
 renderBalls('ovFlatOld',fo6); renderBalls('ovFlatNew',fn6); renderBalls('ovFlatUnion',uf10);
-renderBalls('ovSpecOld',sn6,true); renderBalls('ovSpecNew',sn6,true); renderBalls('ovSpecUnion',sn6,true);
-// (updated to uniSpec6 after union calc below)
+// Tier rendering below
+// (removed old ovSpecOld/New/Union/Hyb)
 
 // ═══ 三肖中特 ═══
 var ZO_NAMES=['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
@@ -370,30 +369,13 @@ for(var zi=0;zi<3;zi++){
   for(var j=0;j<Math.min(2,znums.length);j++){if(uniSpec6.indexOf(znums[j].n)<0)uniSpec6.push(znums[j].n);}
 }
 uniSpec6=uniSpec6.slice(0,6);
-renderBalls('ovSpecNew',uniSpec6,true); renderBalls('ovSpecUnion',uniSpec6,true);
-
-// 混合Top8: linear top4 + zodiac top2x3
-var lin4=snRank.slice(0,4).map(function(x){return x.n;});
-var hybSpec={};
-for(var i=0;i<4;i++)hybSpec[lin4[i]]=1;
-for(var zi=0;zi<3;zi++){
-  var zn2=[];for(var n=1;n<50;n++)if(ZODIAC[n]===sxRanked[zi].z)zn2.push({n:n,s:specScore[n].total});
-  zn2.sort(function(a,b){return b.s-a.s;});
-  for(var j=0;j<2;j++)if(zn2[j])hybSpec[zn2[j].n]=1;
-}
-var hybSpec8=Object.keys(hybSpec).map(Number).slice(0,8);
-renderBalls('ovSpecHyb',hybSpec8,true);
-
-// 特码三段
-var tierHTML='<div style=\"display:flex;gap:10px;margin-top:14px\">';
-var tiers=[{label:'🔥热号',nums:snRank.slice(0,5),color:'#f87171'},{label:'⚡中段',nums:snRank.slice(5,10),color:'#fbbf24'},{label:'❄️冷号',nums:snRank.slice(10,15),color:'#60a5fa'}];
-for(var t=0;t<3;t++){
-  tierHTML+='<div class=\"card\" style=\"flex:1;text-align:center;background:linear-gradient(135deg,#1e293b,#1e3a5f);border-color:'+tiers[t].color+'\"><h3 style=\"color:'+tiers[t].color+'\">'+tiers[t].label+'</h3><div class=\"balls\" style=\"gap:4px;margin-top:4px\">';
-  for(var n=0;n<5;n++)tierHTML+='<span class=\"ball spec\" style=\"width:32px;height:32px;font-size:.65rem\">'+tiers[t].nums[n].n.toString().padStart(2,'0')+'</span>';
-  tierHTML+='</div></div>';
-}
-tierHTML+='</div>';
-document.getElementById('specReview').insertAdjacentHTML('beforebegin',tierHTML);
+// 三段渲染
+var hot5=snRank.slice(0,5).map(function(x){return x.n;});
+var mid5=snRank.slice(5,10).map(function(x){return x.n;});
+var cold5=snRank.slice(10,15).map(function(x){return x.n;});
+renderBalls('ovSpecHot',hot5,true);
+renderBalls('ovSpecMid',mid5,true);
+renderBalls('ovSpecCold',cold5,true);
 
 var sxHTML='';var sxColors=['#fbbf24','#94a3b8','#cd7f32'];
 for(var i=0;i<3;i++){
