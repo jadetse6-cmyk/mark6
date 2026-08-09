@@ -452,9 +452,11 @@ for(var ti=T-tierN;ti<=T;ti++){
   }
   if(count>0){tierHot.push((hh/count*100));tierMid.push((mh/count*100));tierCold.push((ch/count*100));}
 }
-// Tier detail table: shows predicted numbers per tier per draw, hit=highlighted
-var tierDHTML='<table style=\"font-size:.55rem\"><tr><th>期号</th><th>特码</th><th colspan=\"5\">🔥前段</th><th colspan=\"5\">⚡中段</th><th colspan=\"5\">❄️尾段</th></tr>';
-for(var ti=T-30;ti<T;ti++){
+// Tier hit summary: only show hits, with tier+position
+var tierNames=['🔥前段','⚡中段','❄️尾段'];var tierColors=['#f87171','#fbbf24','#60a5fa'];
+var tierDHTML='<table style=\"font-size:.65rem\"><tr><th>期号</th><th>特码</th><th>命中段</th><th>段内排位</th></tr>';
+var hitCount=[0,0,0];
+for(var ti=T-40;ti<T;ti++){
   var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
   var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
   for(var i=0;i<tlt2;i++){var sn3=ttD[i].s;st3[sn3].sc++;st3[sn3].sl=i;}
@@ -464,18 +466,24 @@ for(var ti=T-30;ti<T;ti++){
   var lr2=[];for(var n=1;n<50;n++)lr2.push({n:n,s:lf(n)});lr2.sort(function(a,b){return b.s-a.s;});
   var tiers=[lr2.slice(0,5),lr2.slice(5,10),lr2.slice(10,15)];
   var actual=teD2.s;
-  tierDHTML+='<tr><td>'+DRAWS[ti].i.substring(4)+'</td><td class=\"num-cell\">'+actual+'</td>';
+  var found='—';var pos='—';var color='#334155';
   for(var ti2=0;ti2<3;ti2++){
     for(var ni=0;ni<5;ni++){
-      var num=tiers[ti2][ni].n;
-      var isHit=num==actual;
-      tierDHTML+='<td style=\"background:'+(isHit?'#fbbf24;color:#000;font-weight:700':'')+'\">'+num.toString().padStart(2,'0')+'</td>';
+      if(tiers[ti2][ni].n==actual){
+        found=tierNames[ti2];pos='#'+(ni+1);color=tierColors[ti2];
+        hitCount[ti2]++;
+      }
     }
   }
-  tierDHTML+='</tr>';
+  if(found!='—'){
+    tierDHTML+='<tr><td>'+DRAWS[ti].i.substring(4)+'</td><td class=\"num-cell\">'+actual+'</td><td style=\"color:'+color+';font-weight:700\">'+found+'</td><td>'+pos+'</td></tr>';
+  }else{
+    tierDHTML+='<tr><td>'+DRAWS[ti].i.substring(4)+'</td><td class=\"num-cell\">'+actual+'</td><td style=\"color:#475569\">未命中</td><td>—</td></tr>';
+  }
 }
+tierDHTML+='<tr><td class=\"score-cell\" colspan=\"2\">命中统计</td><td class=\"score-cell\" style=\"color:#f87171\">🔥前段 '+hitCount[0]+'</td><td class=\"score-cell\" style=\"color:#fbbf24\">⚡中段 '+hitCount[1]+'</td><td class=\"score-cell\" style=\"color:#60a5fa\">❄️尾段 '+hitCount[2]+'</td></tr>';
 tierDHTML+='</table>';
-document.getElementById('tierChart').parentNode.innerHTML='<h3>三段明细 (近30期 · 命中=黄底)</h3>'+tierDHTML;
+document.getElementById('tierChart').parentNode.innerHTML='<h3>三段命中记录 (近40期 · 只看命中位置)</h3>'+tierDHTML;
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
