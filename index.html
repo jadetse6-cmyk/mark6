@@ -33,8 +33,8 @@ h2{font-size:1.1rem;color:#f8fafc;margin:24px 0 12px;padding-bottom:6px;border-b
 .ball.c3{background:linear-gradient(135deg,#fbbf24,#d97706)}.ball.c4{background:linear-gradient(135deg,#34d399,#16a34a)}
 .ball.c5{background:linear-gradient(135deg,#60a5fa,#2563eb)}.ball.c6{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
 table{width:100%;font-size:.72rem;border-collapse:collapse}
-th{color:#94a3b8;text-align:left;padding:3px 5px;border-bottom:1px solid #334155;font-weight:400;white-space:nowrap}
-td{padding:3px 5px;border-bottom:1px solid #1e293b;white-space:nowrap}
+th{color:#94a3b8;text-align:left;padding:2px 3px;border-bottom:1px solid #334155;font-weight:400;white-space:nowrap}
+td{padding:2px 3px;border-bottom:1px solid #1e293b;white-space:nowrap}
 tr:hover{background:#1e293b}
 .rank{color:#fbbf24;font-weight:700;width:20px}
 .num-cell{font-weight:700;font-size:.78rem}
@@ -459,7 +459,7 @@ for(var ti=T-tierN;ti<=T;ti++){
 var WAVE={1:'#dc2626',2:'#dc2626',3:'#2563eb',4:'#2563eb',5:'#059669',6:'#059669',7:'#dc2626',8:'#dc2626',9:'#2563eb',10:'#2563eb',11:'#059669',12:'#dc2626',13:'#dc2626',14:'#2563eb',15:'#2563eb',16:'#059669',17:'#059669',18:'#dc2626',19:'#dc2626',20:'#2563eb',21:'#059669',22:'#059669',23:'#dc2626',24:'#dc2626',25:'#2563eb',26:'#2563eb',27:'#059669',28:'#059669',29:'#dc2626',30:'#dc2626',31:'#2563eb',32:'#059669',33:'#059669',34:'#dc2626',35:'#dc2626',36:'#2563eb',37:'#2563eb',38:'#059669',39:'#059669',40:'#dc2626',41:'#2563eb',42:'#2563eb',43:'#059669',44:'#059669',45:'#dc2626',46:'#dc2626',47:'#2563eb',48:'#2563eb',49:'#059669'};
 var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
 	var psum2=Array(15).fill(0);
-	var htm2='<table id="tierTable" style="font-size:.6rem;border-collapse:collapse;text-align:center"><tr style="color:#94a3b8"><th rowspan="2">期号</th><th colspan="5" style="color:#f87171">🔥前段</th><th colspan="5" style="color:#fbbf24">⚡中段</th><th colspan="5" style="color:#60a5fa">❄️尾段</th><th rowspan="2">特肖</th><th rowspan="2">特码</th></tr>';
+	var htm2='<table id="tierTable" style="font-size:.5rem;border-collapse:collapse;text-align:center;width:100%"><tr style="color:#94a3b8"><th rowspan="2">期号</th><th colspan="5" style="color:#f87171">🔥前段</th><th colspan="5" style="color:#fbbf24">⚡中段</th><th colspan="5" style="color:#60a5fa">❄️尾段</th><th rowspan="2">特肖</th><th rowspan="2">特码</th></tr>';
 htm2+='<tr style="color:#94a3b8;font-size:.45rem">';
 for(var g=0;g<3;g++)for(var s=1;s<=5;s++)htm2+='<th>'+(g==0?'前':'')+(g==1?'中':'')+(g==2?'尾':'')+s+'</th>';
 
@@ -473,20 +473,20 @@ for(var ti=T-20;ti<T;ti++){
   var lf=function(n){var m=tlt2-1-(st3[n].sl||tlt2);return st3[n].sc/mxs*100*0.30+m/mxm2*100*0.50;};
   var lr=[];for(var n=1;n<50;n++)lr.push({n:n,s:lf(n)});lr.sort(function(a,b){return b.s-a.s;});
   var actual=teD2.s,hi=-1;for(var k=0;k<15;k++)if(lr[k].n==actual)hi=k;
-  htm2+='<tr><td style="padding:3px 6px">'+DRAWS[ti].i.substring(4)+'</td>';
+  htm2+='<tr><td style="padding:2px 3px">'+DRAWS[ti].i.substring(4)+'</td>';
   for(var p=0;p<15;p++){
     var hit=(p==hi),sep=(p==4||p==9)?'border-right:2px solid #334155;':'';
     if(hit)psum2[p]++;
     if(hit){
-      htm2+='<td style="text-align:center;padding:3px 5px;'+sep+'"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td>';
+      htm2+='<td style="text-align:center;padding:2px 3px;'+sep+'"><span class="ball" style="width:20px;height:20px;font-size:.5rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td>';
     }else{
-      htm2+='<td style="text-align:center;padding:3px 5px;color:#64748b;'+sep+'">·</td>';
+      htm2+='<td style="text-align:center;padding:2px 3px;color:#64748b;'+sep+'">·</td>';
     }
   }
-  htm2+='<td style="text-align:center;padding:3px 5px"><span style="display:inline-block;padding:4px 10px;border-radius:4px;background:'+WAVE[actual]+';color:#fff;font-size:.7rem;font-weight:700">'+ZODIAC[actual]+'</span></td><td style="text-align:center;padding:3px 2px 3px 5px"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
+  htm2+='<td style="text-align:center;padding:2px 3px"><span style="display:inline-block;padding:2px 5px;border-radius:4px;background:'+WAVE[actual]+';color:#fff;font-size:.7rem;font-weight:700">'+ZODIAC[actual]+'</span></td><td style="text-align:center;padding:2px 1px 2px 2px"><span class="ball" style="width:20px;height:20px;font-size:.5rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
 }
-htm2+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:3px 6px">命中</td>';
-for(var p=0;p<15;p++)htm2+='<td style="text-align:center;color:'+pc2[p]+';padding:3px 5px">'+psum2[p]+'</td>';
+htm2+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:2px 3px">命中</td>';
+for(var p=0;p<15;p++)htm2+='<td style="text-align:center;color:'+pc2[p]+';padding:2px 3px">'+psum2[p]+'</td>';
 htm2+='<td></td><td></td></tr>';
 // Prediction row
 var nst2={};for(var n=1;n<50;n++)nst2[n]={sc:0,sl:null};
@@ -496,13 +496,13 @@ var plf=function(n){var m3=T-1-(nst2[n].sl||T);return nst2[n].sc/pmxs*100*0.30+m
 var plr=[];for(var n=1;n<50;n++)plr.push({n:n,s:plf(n)});plr.sort(function(a,b){return b.s-a.s;});
 var pred6=plr.slice(0,6).map(function(x){return x.n;});
 
-htm2+='<tr style="background:#1a2332"><td style="color:#fbbf24;font-weight:700;padding:4px 8px">'+nextIssue+'期</td>';
+htm2+='<tr style="background:#1a2332"><td style="color:#fbbf24;font-weight:700;padding:2px 4px">'+nextIssue+'期</td>';
 for(var p=0;p<15;p++){
   var sep3=(p==4||p==9)?'border-right:2px solid #334155;':'';
   var pn=pred6.indexOf(plr[p].n)>=0;
-  htm2+='<td style="text-align:center;padding:3px 5px;'+sep3+'"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[plr[p].n]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+plr[p].n+'</span></td>';
+  htm2+='<td style="text-align:center;padding:2px 3px;'+sep3+'"><span class="ball" style="width:20px;height:20px;font-size:.5rem;background:'+WAVE[plr[p].n]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+plr[p].n+'</span></td>';
 }
-htm2+='<td style="text-align:center;padding:3px 5px;color:#94a3b8;font-size:.5rem">'+nextIssue+'</td><td></td></tr>';
+htm2+='<td style="text-align:center;padding:2px 3px;color:#94a3b8;font-size:.5rem">'+nextIssue+'</td><td></td></tr>';
 htm2+='</table>';
 document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (近20期 · 1-5=段内排位)</h3>'+htm2;
 
