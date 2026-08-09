@@ -460,7 +460,7 @@ var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#
 	var htm2='<table style="font-size:.6rem;border-collapse:collapse"><tr style="color:#94a3b8"><th rowspan="2">期号</th><th colspan="5" style="color:#f87171">🔥前段</th><th colspan="5" style="color:#fbbf24">⚡中段</th><th colspan="5" style="color:#60a5fa">❄️尾段</th><th rowspan="2">特码</th></tr>';
 	htm2+='<tr style="color:#94a3b8;font-size:.45rem">';
 	for(var g=0;g<3;g++)for(var s=1;s<=5;s++)htm2+='<th style="'+(s==5&&g<2?'border-right:2px solid #334455':'')+'">'+s+'</th>';
-	htm2+='<td class="num-cell" style="text-align:center;padding:4px 6px">'+actual+'</td></tr>';
+	htm2+='<td style="text-align:center;padding:4px 6px"><span class="ball" style="width:28px;height:28px;font-size:.7rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
 	for(var ti=T-20;ti<T;ti++){
 	  var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
 	  var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
@@ -471,7 +471,7 @@ var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#
 	  var actual=teD2.s,hi2=-1;for(var k=0;k<15;k++)if(lr[k].n==actual)hi2=k;
 	  htm2+='<tr><td style="padding:3px 6px">'+DRAWS[ti].i.substring(4)+'</td>';
 	  for(var p=0;p<15;p++){var hit=(p==hi2);if(hit)psum2[p]++;var wc=hit?WAVE[actual]:'transparent';var ball2=hit?'<span class="ball" style="width:28px;height:28px;font-size:.7rem;background:'+wc+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span>':'<span style="color:#334155;font-size:.5rem">·</span>';var sep=(p==4||p==9)?'border-right:2px solid #334155;':'';htm2+='<td style="text-align:center;padding:4px 6px;'+sep+'">'+ball2+'</td>';}
-	  htm2+='<td class="num-cell" style="text-align:center;padding:4px 6px">'+actual+'</td></tr>';
+	  htm2+='<td style="text-align:center;padding:4px 6px"><span class="ball" style="width:28px;height:28px;font-size:.7rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
 	}
 	htm2+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:3px 6px">命中</td>';
 	for(var p=0;p<15;p++){var sep2=(p==4||p==9)?'border-right:2px solid #334155;':'';htm2+='<td style="text-align:center;color:'+pc[p]+';padding:3px 5px;'+sep2+'">'+psum2[p]+'</td>';}
