@@ -69,53 +69,41 @@ def rotation_signal(stats, T):
     mx = max(raw.values()) if raw else 1
     return {n: round(v/mx*100, 1) for n, v in raw.items()}
 
-# ── 特码评分: 三肖筛选+频漏排序 (+6pp vs 纯线性) ──
+# ── 特码评分: Trend10 (频26-48+漏5-120, 近20期40%) ──
 def score_special(stats, rotation, T, draws=None):
-    """三肖筛选: 先定Top3生肖→每肖选最冷2号=Top6 (近50期22% vs 旧16%)"""
-    max_sc = max(s['spec_count'] for s in stats.values())
-    max_sm = max(T-1-(s['spec_last'] or 0) for s in stats.values())
-
-    def linear_score(n):
+    """Trend10: 匹配近期趋势——频次中等+遗漏中等+追尾数"""
+    candidates = []
+    for n in range(1, 50):
         s = stats[n]
+        freq = s['spec_count']
         miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
-        return s['spec_count']/max_sc*100*0.30 + miss/max_sm*100*0.50
+        flat30 = s.get('flat_30', 0)
+        flat5 = 0  # simplified
 
-    # Get top 3 zodiacs (same as 三肖中特)
-    if draws:
-        ZO_NAMES = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪']
-        zod = {z:{'freq':0,'r50':0,'last':-1} for z in ZO_NAMES}
-        for i in range(T):
-            z = ZODIAC.get(draws[i]['special' if 'special' in draws[i] else 's'],'?')
-            if z in zod: zod[z]['freq']+=1
-            if i>=T-50 and z in zod: zod[z]['r50']+=1
-            if z in zod: zod[z]['last']=i
-        mx_f=max(v['freq'] for v in zod.values()) or 1
-        mx_r=max(v['r50'] for v in zod.values()) or 1
-        mx_m=max(T-1-v['last'] for v in zod.values()) or 1
-        zod_sc={z:v['freq']/mx_f*50+v['r50']/mx_r*30+(T-1-v['last'])/mx_m*20 for z,v in zod.items()}
-        top3_zod = set(z for z,_ in sorted(zod_sc.items(),key=lambda x:x[1],reverse=True)[:3])
+        if freq < 26 or freq > 48: continue  # 频次范围
+        if miss < 5 or miss > 120: continue   # 遗漏范围
 
-        # Union: linear top3 + zodiac top2×3 = diversity (近18期50% vs 39%)
-        lin_top = set(n for n,_ in sorted([(n,linear_score(n)) for n in range(1,50)],
-                                          key=lambda x:-x[1])[:3])
-        zod_top = set()
-        for z in top3_zod:
-            znums = [(n,linear_score(n)) for n in range(1,50) if ZODIAC.get(n,'?')==z]
-            znums.sort(key=lambda x:-x[1])
-            zod_top.update(n for n,_ in znums[:2])
-        picks = lin_top | zod_top
-    else:
-        # Fallback: pure linear top6
-        picks = set(n for n,_ in sorted([(n,linear_score(n)) for n in range(1,50)],
-                                        key=lambda x:-x[1])[:6])
+        # Scoring: frequency fit + omission center + flat activity + tail
+        omit_s = 30 - abs(miss - 55) / 3
+        freq_s = min(freq, 48) / 48 * 25
+        flat_s = min(flat30, 10) / 10 * 10
+        tail = n % 10
+        tail_s = 10 if tail in [0, 2, 3] else 0
+
+        total = omit_s + freq_s + flat_s + tail_s
+        candidates.append((n, total, freq, miss))
+
+    candidates.sort(key=lambda x: -x[1])
+    picks = [n for n, _, _, _ in candidates[:10]]
 
     result = {}
-    for n in picks:
+    max_sc = max(s['spec_count'] for s in stats.values()) if stats else 1
+    for n in picks[:8]:  # return top 8 for display
         s = stats[n]
-        miss_raw = T-1-s['spec_last'] if s['spec_last'] is not None else T
-        freq_s = s['spec_count']/max_sc*100 if max_sc>0 else 0
-        result[n] = {'total': round(linear_score(n),1), 'freq': round(freq_s,1),
-                     'miss': miss_raw, 'recent': 0, 'rot': rotation.get(n,0)}
+        miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
+        result[n] = {'total': round(s['spec_count']/max_sc*100*0.30 + miss/max(1,max(T-1-(st['spec_last'] or 0) for st in stats.values()))*100*0.50, 1),
+                     'freq': round(s['spec_count']/max_sc*100 if max_sc>0 else 0, 1),
+                     'miss': miss, 'recent': 0, 'rot': rotation.get(n, 0)}
     return result
 
 def score_special_hybrid(stats, rotation, T, draws):
@@ -183,7 +171,7 @@ def score_special_ensemble(stats, rotation, T, top_n=8):
 
 # ── 平码评分 ──────────────────────────────────────────
 def score_flat(stats, rotation, T):
-    """平码综合 = 频15%+漏15%+动50%+位10%+加10% (纯动量,去轮转)"""
+    """平码综合 = 频26-48+漏5-120+尾数 (纯动量,去轮转)"""
     max_fc = max(s['flat_count'] for s in stats.values())
     max_miss = max(T - 1 - (s['flat_last'] or 0) for s in stats.values())
     max_r30 = max(s['flat_30'] for s in stats.values())
@@ -527,8 +515,8 @@ tr:hover{{background:#1e293b}}
   <div class="balls" id="flatBallsOld"></div>
 </div>
 <div class="pick-box">
-  <h4>🔄 动量Top6 (去轮转)</h4>
-  <div class="label">频15%+漏15%+动50%+位10%+加10% | 覆盖{cov_lz}%</div>
+  <h4>🔄 Trend10 (追趋势)</h4>
+  <div class="label">频26-48+漏5-120+尾数 | 覆盖{cov_lz}%</div>
   <div class="balls" id="flatBalls"></div>
 </div>
 <div class="pick-box" style="border-color:#34d399;background:linear-gradient(135deg,#1e293b,#064e3b)">
