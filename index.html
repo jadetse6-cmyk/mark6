@@ -253,11 +253,12 @@ function scoreSpecComp(st,T){
   for(var n=1;n<50;n++){
     var f=st[n].sc, m=getSpecMiss(st,T,n);
     if(f<26||f>48)continue;if(m<5||m>120)continue;
-    var omit_s=30-Math.abs(m-55)/3;
-    var freq_s=Math.min(f,48)/48*25;
-    var flat_s=Math.min(st[n].f30||0,10)/10*10;
-    var tail=n%10;var tail_s=(tail==0||tail==2||tail==3)?10:0;
-    cand.push({n:n,s:omit_s+freq_s+flat_s+tail_s,f:f,m:m});
+    var omit_s=20-Math.abs(m-50)/3;
+    var freq_s=f>=31&&f<=35?20:(f>=36&&f<=40?15:8);
+    var flat_s=Math.min(st[n].f30||0,8)/8*10;
+    var tail=n%10;var tail_s=(tail==0||tail==2)?25:(tail==3?10:0);
+    var zz=ZODIAC[n];var zod_new=(zz=='龙'||zz=='狗')?15:0;
+    cand.push({n:n,s:omit_s+freq_s+flat_s+tail_s+zod_new,f:f,m:m});
   }
   cand.sort(function(a,b){return b.s-a.s;});
   var sc={};
