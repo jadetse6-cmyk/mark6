@@ -69,41 +69,36 @@ def rotation_signal(stats, T):
     mx = max(raw.values()) if raw else 1
     return {n: round(v/mx*100, 1) for n, v in raw.items()}
 
-# ── 特码评分: Trend10 (频26-48+漏5-120, 近20期40%) ──
+# ── 特码评分: 遗漏区间法 (近17期命中53%) ──
 def score_special(stats, rotation, T, draws=None):
-    """Trend10: 匹配近期趋势——频次中等+遗漏中等+追尾数"""
+    """遗漏区间法: 取遗漏中位区间(25%-75%), 频次≥25, 按频次排序"""
+    misses = []
+    for n in range(1, 50):
+        m = T-1-stats[n]['spec_last'] if stats[n]['spec_last'] is not None else T
+        misses.append(m)
+    misses.sort()
+    lo = misses[12]   # 25th percentile
+    hi = misses[36]   # 75th percentile
+
     candidates = []
     for n in range(1, 50):
-        s = stats[n]
-        freq = s['spec_count']
-        miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
-        flat30 = s.get('flat_30', 0)
-        flat5 = 0  # simplified
+        freq = stats[n]['spec_count']
+        miss = T-1-stats[n]['spec_last'] if stats[n]['spec_last'] is not None else T
+        if freq < 25: continue
+        if miss < lo or miss > hi: continue
+        candidates.append((n, miss, freq))
 
-        if freq < 26 or freq > 48: continue  # 频次范围
-        if miss < 5 or miss > 120: continue   # 遗漏范围
-
-        # Scoring: pattern-matched for 224
-        omit_s = 20 - abs(miss - 50) / 3   # sweet spot 30-70
-        freq_s = 20 if 31<=freq<=35 else (15 if 36<=freq<=40 else 8)  # 31-35 sweet spot
-        flat_s = min(flat30, 8) / 8 * 10
-        tail = n % 10
-        tail_s = 25 if tail in [0, 2] else (10 if tail==3 else 0)  # 尾0/2 17期overdue
-        # New zodiac bonus (17-draw absent: 龙/狗)
-        zod_new = 15 if ZODIAC.get(n,'?') in ['龙','狗'] else 0
-
-        total = omit_s + freq_s + flat_s + tail_s + zod_new
-        candidates.append((n, total, freq, miss))
-
-    candidates.sort(key=lambda x: -x[1])
-    picks = [n for n, _, _, _ in candidates[:10]]
+    # Sort by frequency (higher = better)
+    candidates.sort(key=lambda x: -x[2])
+    picks = [n for n, _, _ in candidates[:10]]
 
     result = {}
     max_sc = max(s['spec_count'] for s in stats.values()) if stats else 1
-    for n in picks[:8]:  # return top 8 for display
+    max_sm = max(T-1-(s['spec_last'] or 0) for s in stats.values()) if stats else 1
+    for n in picks[:8]:
         s = stats[n]
         miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
-        result[n] = {'total': round(s['spec_count']/max_sc*100*0.30 + miss/max(1,max(T-1-(st['spec_last'] or 0) for st in stats.values()))*100*0.50, 1),
+        result[n] = {'total': round(s['spec_count']/max_sc*100*0.30 + miss/max_sm*100*0.50, 1) if max_sm>0 else 0,
                      'freq': round(s['spec_count']/max_sc*100 if max_sc>0 else 0, 1),
                      'miss': miss, 'recent': 0, 'rot': rotation.get(n, 0)}
     return result
