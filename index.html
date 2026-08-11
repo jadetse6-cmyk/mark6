@@ -243,16 +243,30 @@ function scoreFlatOld(st,T){
 
 // Special: comprehensive (频30+漏50)
 function scoreSpecComp(st,T){
+  // Trend10: freq 26-48, omission 5-120
   var max_sc=0,max_sm=0;
   for(var n=1;n<50;n++){
     if(st[n].sc>max_sc) max_sc=st[n].sc;
     var miss=getSpecMiss(st,T,n); if(miss>max_sm) max_sm=miss;
   }
-  var sc={};
+  var cand=[];
   for(var n=1;n<50;n++){
-    var s=st[n], fc=s.sc/max_sc*100;
+    var f=st[n].sc, m=getSpecMiss(st,T,n);
+    if(f<26||f>48)continue;if(m<5||m>120)continue;
+    var omit_s=30-Math.abs(m-55)/3;
+    var freq_s=Math.min(f,48)/48*25;
+    var flat_s=Math.min(st[n].f30||0,10)/10*10;
+    var tail=n%10;var tail_s=(tail==0||tail==2||tail==3)?10:0;
+    cand.push({n:n,s:omit_s+freq_s+flat_s+tail_s,f:f,m:m});
+  }
+  cand.sort(function(a,b){return b.s-a.s;});
+  var sc={};
+  for(var i=0;i<49;i++){
+    var n=i+1, s=st[n], fc=s.sc/max_sc*100;
     var miss=getSpecMiss(st,T,n), ms=miss/max_sm*100;
-    sc[n]={total:fc*0.30+ms*0.50, freq:fc, miss:miss, rot:0};
+    var top10=cand.slice(0,10).map(function(x){return x.n;});
+    var inTop=top10.indexOf(n)>=0;
+    sc[n]={total:inTop?60:fc*0.30+ms*0.50, freq:fc, miss:miss, rot:0};
   }
   return sc;
 }
