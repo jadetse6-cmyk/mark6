@@ -78,7 +78,6 @@ tr:hover{background:#1e293b}
 <div class="pick-row">
 <div class="pick-box" style="border-color:#f87171"><h4>🔥 前段(热号) Top5</h4><div class="label">遗漏最长+频次最高</div><div class="balls" id="ovSpecHot"></div></div>
 <div class="pick-box" style="border-color:#fbbf24"><h4>⚡ 中段 Top5</h4><div class="label">中等遗漏过渡区</div><div class="balls" id="ovSpecMid"></div></div>
-<div class="pick-box" style="border-color:#34d399;background:linear-gradient(135deg,#1e293b,#064e3b)"><h4>🟢 中温号 Top6</h4><div class="label">遗漏10-80期·频次≥20·追趋势</div><div class="balls" id="ovSpecWarm"></div></div>
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 尾段(冷号) Top5</h4><div class="label">候补冷号兜底</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 
@@ -325,7 +324,6 @@ var specScore=scoreSpecComp(st,T);
 var fnRank=rankScores(flatNew), foRank=rankScores(flatOld);
 var snRank=rankScores(specScore);
 // Global special stats for warm calc
-var snStats={};for(var n=1;n<50;n++)snStats[n]=st[n].sc;
 var fn6=fnRank.slice(0,6).map(function(x){return x.n;});
 var fo6=foRank.slice(0,6).map(function(x){return x.n;});
 var sn6=snRank.slice(0,6).map(function(x){return x.n;});
@@ -385,23 +383,7 @@ renderBalls('ovSpecHot',hot5,true);
 renderBalls('ovSpecMid',mid5,true);
 renderBalls('ovSpecCold',cold5,true);
 // Warm numbers from global data
-var warmN=[];
-for(var n=1;n<50;n++){
-  var ms5=T-1-(snStats[n]||T);
-  if(ms5>=10&&ms5<=80&&snStats[n]>=20)warmN.push({n:n,s:snStats[n]/50*40+ms5/80*30+(st[n].f30||0)/30*30});
-}
-warmN.sort(function(a,b){return b.s-a.s;});
-var warm6=warmN.slice(0,6).map(function(x){return x.n;});
-renderBalls('ovSpecWarm',warm6,true);
 // Medium-temp: omission 10-80, freq>=20
-var warmNums=[];
-for(var n=1;n<50;n++){
-  var ms4=T-1-(st2[n].sl!=null?st2[n].sl:T);
-  if(ms4>=10&&ms4<=80&&st2[n].sc>=20)warmNums.push({n:n,s:st2[n].sc/50*40+ms4/80*30+st2[n].f30/30*30});
-}
-warmNums.sort(function(a,b){return b.s-a.s;});
-var warm6=warmNums.slice(0,6).map(function(x){return x.n;});
-renderBalls('ovSpecWarm',warm6,true);
 
 var sxHTML='';var sxColors=['#fbbf24','#94a3b8','#cd7f32'];
 for(var i=0;i<3;i++){
