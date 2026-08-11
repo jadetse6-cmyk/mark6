@@ -92,10 +92,11 @@ def score_special(stats, rotation, T, draws=None):
     candidates.sort(key=lambda x: -x[2])
     picks = [n for n, _, _ in candidates[:10]]
 
+    # Union: omission-range candidates + Trend10 candidates = broader coverage
     result = {}
     max_sc = max(s['spec_count'] for s in stats.values()) if stats else 1
     max_sm = max(T-1-(s['spec_last'] or 0) for s in stats.values()) if stats else 1
-    for n in picks[:8]:
+    for n in picks[:12]:  # return top 12 for union coverage
         s = stats[n]
         miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
         result[n] = {'total': round(s['spec_count']/max_sc*100*0.30 + miss/max_sm*100*0.50, 1) if max_sm>0 else 0,
