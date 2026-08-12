@@ -105,8 +105,12 @@ tr:hover{background:#1e293b}
 <div class="pick-box" style="border-color:#60a5fa"><h4>📊 综合策略</h4><div class="label">频14漏29动24·6个码</div><div class="balls" id="ovFlatOld"></div></div>
 </div>
 
-<h2>📈 15位命中趋势表【遗漏】</h2>
-<div class="card"><div id="tierChart"></div></div>
+<h2>📈 命中趋势表 (自205期累积)</h2>
+<div class="cols3">
+<div class="card"><h3>🟠 遗漏策略</h3><div id="trendOM"></div></div>
+<div class="card"><h3>🔵 Trend10</h3><div id="trendT10"></div></div>
+<div class="card"><h3>🟣 冷门策略</h3><div id="trendCold"></div></div>
+</div>
 
 <h2>📊 回测快览</h2>
 <div class="cols">
@@ -127,7 +131,7 @@ tr:hover{background:#1e293b}
 <h2>🔵 特码三策略 所有数评分 (49)</h2>
 <div class="cols3">
 <div class="card"><h3>🟠 遗漏策略</h3><table id="specTableOM"></table></div>
-<div class="card"><h3>🔵 综合策略</h3><table id="specTableComp"></table></div>
+<div class="card"><h3>🔵 Trend10</h3><table id="specTableComp"></table></div>
 <div class="card"><h3>🟣 冷门策略</h3><table id="specTableCold"></table></div>
 </div>
 </div>
@@ -549,71 +553,55 @@ for(var ti=T-tierN;ti<=T;ti++){
 var WAVE={1:'#dc2626',2:'#dc2626',3:'#2563eb',4:'#2563eb',5:'#059669',6:'#059669',7:'#dc2626',8:'#dc2626',9:'#2563eb',10:'#2563eb',11:'#059669',12:'#dc2626',13:'#dc2626',14:'#2563eb',15:'#2563eb',16:'#059669',17:'#059669',18:'#dc2626',19:'#dc2626',20:'#2563eb',21:'#059669',22:'#059669',23:'#dc2626',24:'#dc2626',25:'#2563eb',26:'#2563eb',27:'#059669',28:'#059669',29:'#dc2626',30:'#dc2626',31:'#2563eb',32:'#059669',33:'#059669',34:'#dc2626',35:'#dc2626',36:'#2563eb',37:'#2563eb',38:'#059669',39:'#059669',40:'#dc2626',41:'#2563eb',42:'#2563eb',43:'#059669',44:'#059669',45:'#dc2626',46:'#dc2626',47:'#2563eb',48:'#2563eb',49:'#059669'};
 var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
 	var psum2=Array(15).fill(0);
-	var htm2='<table id="tierTable" style="font-size:.6rem;border-collapse:collapse;text-align:center;table-layout:fixed;width:100%"><tr style="color:#94a3b8"><th rowspan="2">期号</th><th colspan="5" style="color:#f87171">🔥前段</th><th colspan="5" style="color:#fbbf24">⚡中段</th><th colspan="5" style="color:#60a5fa">❄️尾段</th><th rowspan="2">特肖</th><th rowspan="2">特码</th></tr>';
-htm2+='<tr style="color:#94a3b8;font-size:.45rem">';
-for(var g=0;g<3;g++)for(var s=1;s<=5;s++)htm2+='<th>'+(g==0?'前':'')+(g==1?'中':'')+(g==2?'尾':'')+s+'</th>';
-
-var pc2=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#fbbf24','#60a5fa','#60a5fa','#60a5fa','#60a5fa','#60a5fa'];
-var psum2=Array(15).fill(0);
-// 从205期开始累积显示
-var trendStart=T;
-for(var i2=0;i2<T;i2++){if(DRAWS[i2].i=='2026205'){trendStart=i2;break;}}
-for(var ti=trendStart;ti<T;ti++){
-  var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
-  var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
-  for(var i=0;i<tlt2;i++){var sn=ttD[i].s;st3[sn].sc++;st3[sn].sl=i;}
-  var mxs=0,mxm2=0;for(var n=1;n<50;n++){mxs=Math.max(mxs,st3[n].sc);var ms=tlt2-1-(st3[n].sl||tlt2);mxm2=Math.max(mxm2,ms);}
-  // 三策略并集排名: 遗漏OM + Trend10 + 冷门 各取前5去重
-  var _mis=[];for(var n=1;n<50;n++){_mis.push(tlt2-1-(st3[n].sl||tlt2));}_mis.sort(function(a,b){return a-b;});
-  var _lo=_mis[12],_hi=_mis[36];
-  // 1. OM
-  var _omC=[];for(var n=1;n<50;n++){var _mm3=tlt2-1-(st3[n].sl||tlt2);if(st3[n].sc>=25&&_mm3>=_lo&&_mm3<=_hi)_omC.push({n:n,f:st3[n].sc});}
-  _omC.sort(function(a,b){return b.f-a.f;});
-  // 2. Trend10
-  var _t10C=[];for(var n=1;n<50;n++){var _f2=st3[n].sc,_mm2=tlt2-1-(st3[n].sl||tlt2);var _t=n%10,_z2=ZODIAC[n],_f30x=0;for(var _jj=Math.max(0,tlt2-30);_jj<tlt2;_jj++){if(DRAWS[_jj].f.indexOf(n)>=0)_f30x++;}
-    if(_f2>=26&&_f2<=48&&_mm2>=5&&_mm2<=120){var _os=20-Math.abs(_mm2-50)/3;var _fs=_f2>=31&&_f2<=35?20:(_f2>=36&&_f2<=40?15:8);var _fls=Math.min(_f30x,8)/8*10;var _ts=(_t==0||_t==2)?25:(_t==3?10:0);_t10C.push({n:n,s:_os+_fs+_fls+_ts});}}
-  _t10C.sort(function(a,b){return b.s-a.s;});
-  // 3. 冷门
-  var _coldC=[];for(var n=1;n<50;n++){_coldC.push({n:n,m:tlt2-1-(st3[n].sl||tlt2)});}
-  _coldC.sort(function(a,b){return b.m-a.m;});
-  // 并集: 三策略全部12码去重, 截取15
-  var _union=[];var _used={};
-  var _groups=[_omC,_t10C,_coldC];
-  for(var _g=0;_g<3;_g++){for(var _k=0;_k<Math.min(12,_groups[_g].length);_k++){var _nn=_groups[_g][_k].n;if(!_used[_nn]){_used[_nn]=1;_union.push(_nn);}}}
-  _union=_union.slice(0,15);
-  var actual=teD2.s,hi=_union.indexOf(actual);
-  htm2+='<tr><td style="padding:2px 2px">'+DRAWS[ti].i.substring(4)+'</td>';
-  for(var p=0;p<15;p++){
-    var hit=(p==hi),sep=(p==4||p==9)?'border-right:2px solid #334155;':'';
-    if(hit)psum2[p]++;
-    if(hit){
-      htm2+='<td style="text-align:center;padding:2px 2px;'+sep+'"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td>';
+	// ═══ 命中趋势表: 三策略各一表 (自205期累积) ═══
+var trendStart2=T;
+for(var i2=0;i2<T;i2++){if(DRAWS[i2].i=='2026205'){trendStart2=i2;break;}}
+function buildTrendTable(strat){
+  var h='<table style="font-size:.6rem;border-collapse:collapse;text-align:center;table-layout:fixed;width:100%"><tr style="color:#94a3b8"><th style="padding:2px 2px">期号</th>';
+  for(var k=1;k<=12;k++)h+='<th style="padding:2px 2px;color:#64748b">'+k+'</th>';
+  h+='<th style="padding:2px 2px">特码</th></tr>';
+  var psum=Array(12).fill(0);
+  for(var ti=trendStart2;ti<T;ti++){
+    var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
+    var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null,f30:0};
+    for(var i=0;i<tlt2;i++){var sn=ttD[i].s;st3[sn].sc++;st3[sn].sl=i;}
+    for(var i=Math.max(0,tlt2-30);i<tlt2;i++){var ff=ttD[i].f;for(var q=0;q<ff.length;q++)st3[ff[q]].f30++;}
+    var _mis=[];for(var n=1;n<50;n++){_mis.push(tlt2-1-(st3[n].sl||tlt2));}_mis.sort(function(a,b){return a-b;});
+    var _lo=_mis[12],_hi=_mis[36];
+    var picks=[];
+    if(strat=='OM'){
+      var _c=[];for(var n=1;n<50;n++){var _mm3=tlt2-1-(st3[n].sl||tlt2);if(st3[n].sc>=25&&_mm3>=_lo&&_mm3<=_hi)_c.push({n:n,f:st3[n].sc});}
+      _c.sort(function(a,b){return b.f-a.f;});
+      picks=_c.slice(0,12).map(function(x){return x.n;});
+    }else if(strat=='T10'){
+      var _c=[];for(var n=1;n<50;n++){var _f2=st3[n].sc,_mm2=tlt2-1-(st3[n].sl||tlt2);var _t=n%10,_f30x=st3[n].f30;
+        if(_f2>=26&&_f2<=48&&_mm2>=5&&_mm2<=120){var _os=20-Math.abs(_mm2-50)/3;var _fs=_f2>=31&&_f2<=35?20:(_f2>=36&&_f2<=40?15:8);var _fls=Math.min(_f30x,8)/8*10;var _ts=(_t==0||_t==2)?25:(_t==3?10:0);_c.push({n:n,s:_os+_fs+_fls+_ts});}}
+      _c.sort(function(a,b){return b.s-a.s;});
+      picks=_c.slice(0,12).map(function(x){return x.n;});
     }else{
-      htm2+='<td style="text-align:center;padding:2px 2px;color:#64748b;'+sep+'">·</td>';
+      var _c=[];for(var n=1;n<50;n++){_c.push({n:n,m:tlt2-1-(st3[n].sl||tlt2)});}
+      _c.sort(function(a,b){return b.m-a.m;});
+      picks=_c.slice(0,12).map(function(x){return x.n;});
     }
+    var actual=teD2.s,hi=picks.indexOf(actual);
+    h+='<tr><td style="padding:2px 2px;color:#94a3b8">'+DRAWS[ti].i.substring(4)+'</td>';
+    for(var p=0;p<12;p++){
+      var hit=(p==hi);
+      if(hit)psum[p]++;
+      if(hit){h+='<td style="text-align:center;padding:2px 2px"><span class="ball" style="width:22px;height:22px;font-size:.55rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td>';}
+      else{h+='<td style="text-align:center;padding:2px 2px;color:#64748b">·</td>';}
+    }
+    h+='<td style="text-align:center;padding:2px 2px"><span class="ball" style="width:22px;height:22px;font-size:.55rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
   }
-  htm2+='<td style="text-align:center;padding:2px 2px"><span style="display:inline-block;padding:2px 6px;border-radius:4px;background:'+WAVE[actual]+';color:#fff;font-size:.7rem;font-weight:700">'+ZODIAC[actual]+'</span></td><td style="text-align:center;padding:3px 2px 3px 5px"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
+  h+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:2px 2px">命中</td>';
+  for(var p=0;p<12;p++)h+='<td style="text-align:center;color:#fbbf24;padding:2px 2px">'+psum[p]+'</td>';
+  h+='<td></td></tr></table>';
+  return h;
 }
-htm2+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:2px 2px">命中</td>';
-for(var p=0;p<15;p++)htm2+='<td style="text-align:center;color:'+pc2[p]+';padding:2px 2px">'+psum2[p]+'</td>';
-htm2+='<td></td><td></td></tr>';
-// Prediction row
-var nst2={};for(var n=1;n<50;n++)nst2[n]={sc:0,sl:null};
-for(var i=0;i<T;i++){var sn3=DRAWS[i].s;nst2[sn3].sc++;nst2[sn3].sl=i;}
-var pmxs=0,pmxm=0;for(var n=1;n<50;n++){pmxs=Math.max(pmxs,nst2[n].sc);var ms3=T-1-(nst2[n].sl||T);pmxm=Math.max(pmxm,ms3);}
-var plf=function(n){var m3=T-1-(nst2[n].sl||T);return nst2[n].sc/pmxs*100*0.30+m3/pmxm*100*0.50;};
-var plr=[];for(var n=1;n<50;n++)plr.push({n:n,s:plf(n)});plr.sort(function(a,b){return b.s-a.s;});
-var pred6=plr.slice(0,6).map(function(x){return x.n;});
+document.getElementById('trendOM').innerHTML=buildTrendTable('OM');
+document.getElementById('trendT10').innerHTML=buildTrendTable('T10');
+document.getElementById('trendCold').innerHTML=buildTrendTable('COLD');
 
-htm2+='<tr style="background:#1a2332"><td style="color:#fbbf24;font-weight:700;padding:2px 4px">'+nextIssue+'期</td>';
-for(var p=0;p<15;p++){
-  var sep3=(p==4||p==9)?'border-right:2px solid #334155;':'';
-  var pn=pred6.indexOf(plr[p].n)>=0;
-  htm2+='<td style="text-align:center;padding:2px 2px;'+sep3+'"><span class="ball" style="width:26px;height:26px;font-size:.65rem;background:'+WAVE[plr[p].n]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+plr[p].n+'</span></td>';
-}
-htm2+='<td style="text-align:center;padding:2px 2px;color:#94a3b8;font-size:.5rem">'+nextIssue+'</td><td></td></tr>';
-htm2+='</table>';
-document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (三策略并集 · 全部去重取15)</h3>'+htm2;
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
