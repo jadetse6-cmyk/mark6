@@ -72,7 +72,7 @@ tr:hover{background:#1e293b}
 <h2>🏆 <span id="curIssue"></span>期 三策略推荐 (特码)</h2>
 <div class="pick-row">
 <div class="pick-box" style="border-color:#f87171"><h4>📊 遗漏策略</h4><div class="label">遗漏区间法·12个码</div><div class="balls" id="ovSpecOM"></div></div>
-<div class="pick-box" style="border-color:#fbbf24"><h4>🔢 综合策略</h4><div class="label">频30漏50·12个码</div><div class="balls" id="ovSpecComp"></div></div>
+<div class="pick-box" style="border-color:#fbbf24"><h4>🔢 Trend10策略</h4><div class="label">频26-48+漏5-120·12个码</div><div class="balls" id="ovSpecComp"></div></div>
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 <div class="pick-row">
@@ -383,11 +383,20 @@ for(var n=1;n<50;n++){
 omCand.sort(function(a,b){return b.f-a.f;});
 var om12=omCand.slice(0,12).map(function(x){return x.n;});
 
-// 2. 综合策略: 频30漏50
+// 2. Trend10策略: 频26-48+漏5-120+模式评分
 var compCand=[];
 for(var n=1;n<50;n++){
   var _f2=st[n].sc,_mm2=T-1-(st[n].sl!=null?st[n].sl:T);
-  compCand.push({n:n,s:_f2/mxsc*100*0.30+_mm2/mxsm*100*0.50});
+  var _t=n%10,_z=ZODIAC[n],_f30x=st[n].f30||0;
+  if(_f2<26||_f2>48)continue;
+  if(_mm2<5||_mm2>120)continue;
+  var _os=20-Math.abs(_mm2-50)/3;
+  var _fs=_f2>=31&&_f2<=35?20:(_f2>=36&&_f2<=40?15:8);
+  var _fls=Math.min(_f30x,8)/8*10;
+  var _ts=(_t==0||_t==2)?25:(_t==3?10:0);
+  var _zod17={};for(var _j=Math.max(0,T-17);_j<T;_j++){_zod17[ZODIAC[DRAWS[_j].s]]=1;}
+  var _zs=_zod17[_z]?0:15;
+  compCand.push({n:n,s:_os+_fs+_fls+_ts+_zs});
 }
 compCand.sort(function(a,b){return b.s-a.s;});
 var comp12=compCand.slice(0,12).map(function(x){return x.n;});
