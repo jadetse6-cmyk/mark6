@@ -76,7 +76,7 @@ tr:hover{background:#1e293b}
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 <div class="pick-row">
-<div class="pick-box union"><h4>🔥 三策略并集</h4><div class="label">去各策略前三·12个码</div><div class="balls" id="ovSpecUnion"></div></div>
+<div class="pick-box union"><h4>🔥 三策略并集</h4><div class="label">三策略全部去重·15个码</div><div class="balls" id="ovSpecUnion"></div></div>
 </div>
 
 <h2>🐉 三肖中特</h2>
@@ -411,23 +411,23 @@ coldCand.sort(function(a,b){return b.m-a.m;});
 var cold12=coldCand.slice(0,12).map(function(x){return x.n;});
 
 // 4. 并集: 去各策略前三
-var top3Set={};
-for(var i=0;i<3;i++){top3Set[om12[i]]=1;top3Set[comp12[i]]=1;top3Set[cold12[i]]=1;}
+// 并集: 三策略全部号码去重, 不去前三
 var unionAll={};
 for(var i=0;i<12;i++){
-  if(!top3Set[om12[i]])unionAll[om12[i]]=1;
-  if(!top3Set[comp12[i]])unionAll[comp12[i]]=1;
-  if(!top3Set[cold12[i]])unionAll[cold12[i]]=1;
+  unionAll[om12[i]]=1;
+  unionAll[comp12[i]]=1;
+  unionAll[cold12[i]]=1;
 }
-var union12=Object.keys(unionAll).map(Number).slice(0,12);
-if(union12.length<12){ // fill with OM extras
-  for(var i=0;i<om12.length&&union12.length<12;i++){if(union12.indexOf(om12[i])<0)union12.push(om12[i]);}
+var union15=Object.keys(unionAll).map(Number);
+if(union15.length<15){ // fill with OM extras
+  for(var i=0;i<omCand.length&&union15.length<15;i++){if(union15.indexOf(omCand[i].n)<0)union15.push(omCand[i].n);}
 }
+union15=union15.slice(0,15);
 
 renderBalls('ovSpecOM',om12,true);
 renderBalls('ovSpecComp',comp12,true);
 renderBalls('ovSpecCold',cold12,true);
-renderBalls('ovSpecUnion',union12,true);
+renderBalls('ovSpecUnion',union15,true);
 
 // ═══ 平码三策略 ×6 ═══
 // 1. 遗漏策略 (OM): 平码遗漏区间法
