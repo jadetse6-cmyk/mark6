@@ -69,16 +69,14 @@ tr:hover{background:#1e293b}
 
 <!-- ═══ OVERVIEW ═══ -->
 <div id="tab-overview">
-<h2>🏆 <span id="curIssue"></span>期 推荐组合</h2>
+<h2>🏆 <span id="curIssue"></span>期 三策略推荐 (特码)</h2>
 <div class="pick-row">
-<div class="pick-box alt"><h4>📊 综合 Top6</h4><div class="label">频14+漏29+动24+加18+位15</div><div class="balls" id="ovFlatOld"></div></div>
-<div class="pick-box"><h4>🔄 动量 Top6</h4><div class="label">频15+漏15+动45+轮5+位10+加10</div><div class="balls" id="ovFlatNew"></div></div>
-<div class="pick-box union"><h4>🔥 并集 Top10</h4><div class="label">综合∪动量 去重推荐</div><div class="balls" id="ovFlatUnion"></div></div>
+<div class="pick-box" style="border-color:#f87171"><h4>📊 遗漏策略</h4><div class="label">遗漏区间法·12个码</div><div class="balls" id="ovSpecOM"></div></div>
+<div class="pick-box" style="border-color:#fbbf24"><h4>🔢 综合策略</h4><div class="label">频30漏50·12个码</div><div class="balls" id="ovSpecComp"></div></div>
+<div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 <div class="pick-row">
-<div class="pick-box" style="border-color:#f87171"><h4>🔥 前段(热号) Top5</h4><div class="label">遗漏最长+频次最高</div><div class="balls" id="ovSpecHot"></div></div>
-<div class="pick-box" style="border-color:#fbbf24"><h4>⚡ 中段 Top5</h4><div class="label">中等遗漏过渡区</div><div class="balls" id="ovSpecMid"></div></div>
-<div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 尾段(冷号) Top5</h4><div class="label">候补冷号兜底</div><div class="balls" id="ovSpecCold"></div></div>
+<div class="pick-box union"><h4>🔥 三策略并集</h4><div class="label">去各策略前三·12个码</div><div class="balls" id="ovSpecUnion"></div></div>
 </div>
 
 <h2>🐉 三肖中特</h2>
@@ -100,11 +98,15 @@ tr:hover{background:#1e293b}
 </div>
 </div>
 
-<h2>📈 三段命中趋势 (近10期)</h2>
-<div class="card"><canvas id="tierChart" style="max-height:200px"></canvas></div>
+<h2>🎯 三策略推荐 (平码)</h2>
+<div class="pick-row">
+<div class="pick-box" style="border-color:#f87171"><h4>📊 遗漏策略</h4><div class="label">遗漏区间法·6个码</div><div class="balls" id="ovFlatOM"></div></div>
+<div class="pick-box" style="border-color:#fbbf24"><h4>🔢 动量策略</h4><div class="label">f30动量·6个码</div><div class="balls" id="ovFlatNew"></div></div>
+<div class="pick-box" style="border-color:#60a5fa"><h4>📊 综合策略</h4><div class="label">频14漏29动24·6个码</div><div class="balls" id="ovFlatOld"></div></div>
+</div>
 
-<h2>🔵 近20期特码回顾</h2>
-<div class="card"><table id="specReview"></table></div>
+<h2>📈 15位命中趋势表【遗漏】</h2>
+<div class="card"><div id="tierChart"></div></div>
 
 <h2>📊 回测快览</h2>
 <div class="cols">
@@ -361,9 +363,76 @@ function renderBalls(el,nums,isSpec){
   }
   document.getElementById(el).innerHTML=h;
 }
-renderBalls('ovFlatOld',fo6); renderBalls('ovFlatNew',fn6); renderBalls('ovFlatUnion',uf10);
-// Tier rendering below
-// (removed old ovSpecOld/New/Union/Hyb)
+// ═══ 特码三策略 ×12 + 并集 ═══
+var mxsc=0,mxsm=0;
+for(var n=1;n<50;n++){
+  if(st[n].sc>mxsc)mxsc=st[n].sc;
+  var _mm0=T-1-(st[n].sl!=null?st[n].sl:T);
+  if(_mm0>mxsm)mxsm=_mm0;
+}
+// 1. 遗漏策略 (OM): 遗漏区间法
+var omMisses=[];
+for(var n=1;n<50;n++){var _m=T-1-(st[n].sl!=null?st[n].sl:T);omMisses.push(_m);}
+omMisses.sort(function(a,b){return a-b;});
+var omLo=omMisses[12],omHi=omMisses[36];
+var omCand=[];
+for(var n=1;n<50;n++){
+  var _f=st[n].sc,_mm=T-1-(st[n].sl!=null?st[n].sl:T);
+  if(_f>=25&&_mm>=omLo&&_mm<=omHi)omCand.push({n:n,f:_f,m:_mm});
+}
+omCand.sort(function(a,b){return b.f-a.f;});
+var om12=omCand.slice(0,12).map(function(x){return x.n;});
+
+// 2. 综合策略: 频30漏50
+var compCand=[];
+for(var n=1;n<50;n++){
+  var _f2=st[n].sc,_mm2=T-1-(st[n].sl!=null?st[n].sl:T);
+  compCand.push({n:n,s:_f2/mxsc*100*0.30+_mm2/mxsm*100*0.50});
+}
+compCand.sort(function(a,b){return b.s-a.s;});
+var comp12=compCand.slice(0,12).map(function(x){return x.n;});
+
+// 3. 冷门策略: 遗漏最长
+var coldCand=[];
+for(var n=1;n<50;n++){
+  var _mm3=T-1-(st[n].sl!=null?st[n].sl:T);
+  coldCand.push({n:n,m:_mm3});
+}
+coldCand.sort(function(a,b){return b.m-a.m;});
+var cold12=coldCand.slice(0,12).map(function(x){return x.n;});
+
+// 4. 并集: 去各策略前三
+var top3Set={};
+for(var i=0;i<3;i++){top3Set[om12[i]]=1;top3Set[comp12[i]]=1;top3Set[cold12[i]]=1;}
+var unionAll={};
+for(var i=0;i<12;i++){
+  if(!top3Set[om12[i]])unionAll[om12[i]]=1;
+  if(!top3Set[comp12[i]])unionAll[comp12[i]]=1;
+  if(!top3Set[cold12[i]])unionAll[cold12[i]]=1;
+}
+var union12=Object.keys(unionAll).map(Number).slice(0,12);
+if(union12.length<12){ // fill with OM extras
+  for(var i=0;i<om12.length&&union12.length<12;i++){if(union12.indexOf(om12[i])<0)union12.push(om12[i]);}
+}
+
+renderBalls('ovSpecOM',om12,true);
+renderBalls('ovSpecComp',comp12,true);
+renderBalls('ovSpecCold',cold12,true);
+renderBalls('ovSpecUnion',union12,true);
+
+// ═══ 平码三策略 ×6 ═══
+// 1. 遗漏策略 (OM): 平码遗漏区间法
+var flatOM=[];
+for(var n=1;n<50;n++){
+  var _fm=T-1-(st[n].fl!=null?st[n].fl:T);
+  if(_fm>=omLo&&_fm<=omHi&&st[n].fc>=Math.floor(T/49*6))flatOM.push({n:n,f:st[n].fc,m:_fm});
+}
+flatOM.sort(function(a,b){return b.f-a.f;});
+var flatOM6=flatOM.slice(0,6).map(function(x){return x.n;});
+
+renderBalls('ovFlatOM',flatOM6);
+renderBalls('ovFlatNew',fn6);
+renderBalls('ovFlatOld',fo6);
 
 // ═══ 三肖中特 ═══
 var ZO_NAMES=['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
@@ -390,13 +459,7 @@ for(var zi=0;zi<3;zi++){
   for(var j=0;j<Math.min(2,znums.length);j++){if(uniSpec6.indexOf(znums[j].n)<0)uniSpec6.push(znums[j].n);}
 }
 uniSpec6=uniSpec6.slice(0,6);
-// 三段渲染
-var hot5=snRank.slice(0,5).map(function(x){return x.n;});
-var mid5=snRank.slice(5,10).map(function(x){return x.n;});
-var cold5=snRank.slice(10,15).map(function(x){return x.n;});
-renderBalls('ovSpecHot',hot5,true);
-renderBalls('ovSpecMid',mid5,true);
-renderBalls('ovSpecCold',cold5,true);
+// 三段渲染已移至三策略框架
 // Warm numbers from global data
 // Medium-temp: omission 10-80, freq>=20
 
