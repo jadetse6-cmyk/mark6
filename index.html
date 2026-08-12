@@ -563,9 +563,24 @@ for(var ti=trendStart;ti<T;ti++){
   var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
   for(var i=0;i<tlt2;i++){var sn=ttD[i].s;st3[sn].sc++;st3[sn].sl=i;}
   var mxs=0,mxm2=0;for(var n=1;n<50;n++){mxs=Math.max(mxs,st3[n].sc);var ms=tlt2-1-(st3[n].sl||tlt2);mxm2=Math.max(mxm2,ms);}
-  var lf=function(n){var m=tlt2-1-(st3[n].sl||tlt2);return st3[n].sc/mxs*100*0.30+m/mxm2*100*0.50;};
-  var lr=[];for(var n=1;n<50;n++)lr.push({n:n,s:lf(n)});lr.sort(function(a,b){return b.s-a.s;});
-  var actual=teD2.s,hi=-1;for(var k=0;k<15;k++)if(lr[k].n==actual)hi=k;
+  // 三策略并集排名: 遗漏OM + Trend10 + 冷门 各取前5去重
+  var _mis=[];for(var n=1;n<50;n++){_mis.push(tlt2-1-(st3[n].sl||tlt2));}_mis.sort(function(a,b){return a-b;});
+  var _lo=_mis[12],_hi=_mis[36];
+  // 1. OM
+  var _omC=[];for(var n=1;n<50;n++){var _mm3=tlt2-1-(st3[n].sl||tlt2);if(st3[n].sc>=25&&_mm3>=_lo&&_mm3<=_hi)_omC.push({n:n,f:st3[n].sc});}
+  _omC.sort(function(a,b){return b.f-a.f;});
+  // 2. Trend10
+  var _t10C=[];for(var n=1;n<50;n++){var _f2=st3[n].sc,_mm2=tlt2-1-(st3[n].sl||tlt2);var _t=n%10,_z2=ZODIAC[n],_f30x=0;for(var _jj=Math.max(0,tlt2-30);_jj<tlt2;_jj++){if(DRAWS[_jj].f.indexOf(n)>=0)_f30x++;}
+    if(_f2>=26&&_f2<=48&&_mm2>=5&&_mm2<=120){var _os=20-Math.abs(_mm2-50)/3;var _fs=_f2>=31&&_f2<=35?20:(_f2>=36&&_f2<=40?15:8);var _fls=Math.min(_f30x,8)/8*10;var _ts=(_t==0||_t==2)?25:(_t==3?10:0);_t10C.push({n:n,s:_os+_fs+_fls+_ts});}}
+  _t10C.sort(function(a,b){return b.s-a.s;});
+  // 3. 冷门
+  var _coldC=[];for(var n=1;n<50;n++){_coldC.push({n:n,m:tlt2-1-(st3[n].sl||tlt2)});}
+  _coldC.sort(function(a,b){return b.m-a.m;});
+  // 并集: 每策略取前5, 去重, 共15格
+  var _union=[];var _used={};
+  var _groups=[_omC,_t10C,_coldC];
+  for(var _g=0;_g<3;_g++){for(var _k=0;_k<Math.min(5,_groups[_g].length);_k++){var _nn=_groups[_g][_k].n;if(!_used[_nn]){_used[_nn]=1;_union.push(_nn);}}}
+  var actual=teD2.s,hi=_union.indexOf(actual);
   htm2+='<tr><td style="padding:2px 2px">'+DRAWS[ti].i.substring(4)+'</td>';
   for(var p=0;p<15;p++){
     var hit=(p==hi),sep=(p==4||p==9)?'border-right:2px solid #334155;':'';
@@ -597,7 +612,7 @@ for(var p=0;p<15;p++){
 }
 htm2+='<td style="text-align:center;padding:2px 2px;color:#94a3b8;font-size:.5rem">'+nextIssue+'</td><td></td></tr>';
 htm2+='</table>';
-document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (近20期 · 1-5=段内排位)</h3>'+htm2;
+document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (三策略并集 · 每策略前5去重)</h3>'+htm2;
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
