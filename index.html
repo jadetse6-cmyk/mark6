@@ -118,17 +118,17 @@ tr:hover{background:#1e293b}
 
 <!-- ═══ FLAT ═══ -->
 <div id="tab-flat" style="display:none">
-<h2>🎯 平码 TOP 20 评分</h2>
-<div class="card"><canvas id="flatChart"></canvas></div>
-<div class="card" style="margin-top:12px"><h3>📋 平码 TOP 20 明细</h3><table id="flatTable"></table></div>
+<h2>🎯 平码 所有数评分 (49)</h2>
+<div class="card"><h3>📋 平码 全部明细</h3><table id="flatTable"></table></div>
 </div>
 
 <!-- ═══ SPECIAL ═══ -->
 <div id="tab-special" style="display:none">
-<h2>🔵 特码 TOP 15</h2>
-<div class="cols">
-<div class="card"><h3>评分图表</h3><canvas id="specChart"></canvas></div>
-<div class="card"><h3>📋 明细</h3><table id="specTable"></table></div>
+<h2>🔵 特码三策略 所有数评分 (49)</h2>
+<div class="cols3">
+<div class="card"><h3>🟠 遗漏策略</h3><table id="specTableOM"></table></div>
+<div class="card"><h3>🔵 综合策略</h3><table id="specTableComp"></table></div>
+<div class="card"><h3>🟣 冷门策略</h3><table id="specTableCold"></table></div>
 </div>
 </div>
 
@@ -576,10 +576,11 @@ for(var ti=trendStart;ti<T;ti++){
   // 3. 冷门
   var _coldC=[];for(var n=1;n<50;n++){_coldC.push({n:n,m:tlt2-1-(st3[n].sl||tlt2)});}
   _coldC.sort(function(a,b){return b.m-a.m;});
-  // 并集: 每策略取前5, 去重, 共15格
+  // 并集: 三策略全部12码去重, 截取15
   var _union=[];var _used={};
   var _groups=[_omC,_t10C,_coldC];
-  for(var _g=0;_g<3;_g++){for(var _k=0;_k<Math.min(5,_groups[_g].length);_k++){var _nn=_groups[_g][_k].n;if(!_used[_nn]){_used[_nn]=1;_union.push(_nn);}}}
+  for(var _g=0;_g<3;_g++){for(var _k=0;_k<Math.min(12,_groups[_g].length);_k++){var _nn=_groups[_g][_k].n;if(!_used[_nn]){_used[_nn]=1;_union.push(_nn);}}}
+  _union=_union.slice(0,15);
   var actual=teD2.s,hi=_union.indexOf(actual);
   htm2+='<tr><td style="padding:2px 2px">'+DRAWS[ti].i.substring(4)+'</td>';
   for(var p=0;p<15;p++){
@@ -612,7 +613,7 @@ for(var p=0;p<15;p++){
 }
 htm2+='<td style="text-align:center;padding:2px 2px;color:#94a3b8;font-size:.5rem">'+nextIssue+'</td><td></td></tr>';
 htm2+='</table>';
-document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (三策略并集 · 每策略前5去重)</h3>'+htm2;
+document.getElementById('tierChart').parentNode.innerHTML='<h3>15位命中时间线 (三策略并集 · 全部去重取15)</h3>'+htm2;
 
 // ═══ 连肖 (平+特) ═══
 var lxZt={},lxZ50={},lxZ30={},lxZ15={};
@@ -676,32 +677,54 @@ btHTML+='</table>';
 document.getElementById('ovBTTable').innerHTML='<h3>📋 回测数据</h3>'+btHTML;
 
 // ═══ FLAT TAB ═══
-var flatChartData=fnRank.slice(0,20).map(function(x,i){
-  var s=flatNew[x.n];
-  return {n:(x.n<10?'0':'')+x.n, s:x.s, mis:s.miss, r30:s.r30, acc:s.acc, cr:s.rot};
-});
-new Chart(document.getElementById('flatChart'),{type:'bar',data:{labels:flatChartData.map(function(d){return d.n;}),datasets:[{data:flatChartData.map(function(d){return d.s;}),backgroundColor:flatChartData.map(function(d,i){return i<6?'#fbbf24':i<10?'#60a5fa':'#475569';}),borderRadius:3}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TC,font:{size:9}},grid:{color:DG}},y:{ticks:{color:TC},grid:{color:DG},title:{display:true,text:'动量评分',color:TC}}}}});
-
-var ftHTML='<tr><th>#</th><th>号</th><th>评分</th><th>频次</th><th>遗漏</th><th>近30</th><th>加速</th><th>轮转</th></tr>';
-for(var i=0;i<20;i++){
-  var d=flatChartData[i];
-  ftHTML+='<tr><td class="rank">'+(i+1)+'</td><td class="num-cell">'+d.n+'</td><td class="score-cell">'+d.s.toFixed(1)+'</td><td>'+d.mis+'</td><td>'+d.mis+'</td><td>'+d.r30+'</td><td>'+d.acc.toFixed(0)+'</td><td><span class="bar" style="width:'+(d.cr/100*40)+'px"></span>'+d.cr.toFixed(0)+'</td></tr>';
+var ftHTML='<tr><th>#</th><th>号</th><th>生肖</th><th>评分</th><th>频次</th><th>遗漏</th><th>近30</th></tr>';
+var flatAllData=[];
+for(var n=1;n<50;n++){var s=flatNew[n];flatAllData.push({n:n,s:s.total,fc:Math.round(s.freq),mis:s.miss,r30:s.r30,z:ZODIAC[n]});}
+flatAllData.sort(function(a,b){return b.s-a.s;});
+for(var i=0;i<49;i++){
+  var d=flatAllData[i];
+  ftHTML+='<tr'+(i<6?' class="top6"':'')+'><td class="rank">'+(i+1)+'</td><td class="num-cell">'+(d.n<10?'0':'')+d.n+'</td><td>'+d.z+'</td><td class="score-cell">'+d.s.toFixed(1)+'</td><td>'+d.fc+'</td><td>'+d.mis+'</td><td>'+d.r30+'</td></tr>';
 }
 document.getElementById('flatTable').innerHTML=ftHTML;
 
-// ═══ SPECIAL TAB ═══
-var specChartData=snRank.slice(0,15).map(function(x,i){
-  var s=specScore[x.n];
-  return {n:(x.n<10?'0':'')+x.n, s:x.s, fq:s.freq, ms:s.miss, cr:s.rot, z:ZODIAC[x.n]};
-});
-new Chart(document.getElementById('specChart'),{type:'bar',data:{labels:specChartData.map(function(d){return d.n;}),datasets:[{data:specChartData.map(function(d){return d.s;}),backgroundColor:specChartData.map(function(d,i){return i<3?'#3b82f6':i<6?'#60a5fa':'#475569';}),borderRadius:3}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TC,font:{size:9}},grid:{color:DG}},y:{ticks:{color:TC},grid:{color:DG}}}}});
-
-var stHTML='<tr><th>#</th><th>号</th><th>生肖</th><th>评分</th><th>频次</th><th>遗漏</th><th>轮转</th></tr>';
-for(var i=0;i<15;i++){
-  var d=specChartData[i];
-  stHTML+='<tr><td class="rank">'+(i+1)+'</td><td class="num-cell">'+d.n+'</td><td>'+d.z+'</td><td class="score-cell">'+d.s.toFixed(1)+'</td><td>'+d.fq.toFixed(0)+'</td><td>'+d.ms+'</td><td>'+d.cr.toFixed(0)+'</td></tr>';
+// ═══ SPECIAL TAB: 三策略所有数 ═══
+// 遗漏策略 OM: 频次≥25且遗漏在区间 = 候选, 按频次排
+var omScore={};omCand.forEach(function(c){omScore[c.n]=c.f;});
+var omAll=[];
+for(var n=1;n<50;n++){
+  var _f=st[n].sc,_mm=T-1-(st[n].sl!=null?st[n].sl:T);
+  omAll.push({n:n,z:ZODIAC[n],s:omScore[n]||0,f:_f,m:_mm});
 }
-document.getElementById('specTable').innerHTML=stHTML;
+omAll.sort(function(a,b){return b.s-a.s;});
+var omHTML='<tr><th>#</th><th>号</th><th>生肖</th><th>评分</th><th>频次</th><th>遗漏</th></tr>';
+for(var i=0;i<49;i++){
+  var d=omAll[i];
+  omHTML+='<tr'+(d.s>0?' class="top6"':'')+'><td class="rank">'+(i+1)+'</td><td class="num-cell">'+(d.n<10?'0':'')+d.n+'</td><td>'+d.z+'</td><td class="score-cell">'+(d.s>0?d.s:'—')+'</td><td>'+d.f+'</td><td>'+d.m+'</td></tr>';
+}
+document.getElementById('specTableOM').innerHTML=omHTML;
+
+// 综合策略 Trend10: 全部49号, 未候选=0
+var compScore={};compCand.forEach(function(c){compScore[c.n]=c.s;});
+var compAll=[];
+for(var n=1;n<50;n++){
+  var _f2=st[n].sc,_mm2=T-1-(st[n].sl!=null?st[n].sl:T);
+  compAll.push({n:n,z:ZODIAC[n],s:compScore[n]||0,f:_f2,m:_mm2});
+}
+compAll.sort(function(a,b){return b.s-a.s;});
+var compHTML='<tr><th>#</th><th>号</th><th>生肖</th><th>评分</th><th>频次</th><th>遗漏</th></tr>';
+for(var i=0;i<49;i++){
+  var d=compAll[i];
+  compHTML+='<tr'+(d.s>0?' class="top6"':'')+'><td class="rank">'+(i+1)+'</td><td class="num-cell">'+(d.n<10?'0':'')+d.n+'</td><td>'+d.z+'</td><td class="score-cell">'+(d.s>0?d.s.toFixed(0):'—')+'</td><td>'+d.f+'</td><td>'+d.m+'</td></tr>';
+}
+document.getElementById('specTableComp').innerHTML=compHTML;
+
+// 冷门策略: 全部49号按遗漏降序
+var coldHTML='<tr><th>#</th><th>号</th><th>生肖</th><th>评分</th><th>频次</th><th>遗漏</th></tr>';
+for(var i=0;i<49;i++){
+  var c=coldCand[i];
+  coldHTML+='<tr'+(i<12?' class="top6"':'')+'><td class="rank">'+(i+1)+'</td><td class="num-cell">'+(c.n<10?'0':'')+c.n+'</td><td>'+ZODIAC[c.n]+'</td><td class="score-cell">'+c.m+'</td><td>'+st[c.n].sc+'</td><td>'+c.m+'</td></tr>';
+}
+document.getElementById('specTableCold').innerHTML=coldHTML;
 
 // ═══ ZODIAC TAB ═══
 var zodSpec={}; for(var i=0;i<12;i++) zodSpec[ZODIAC_NAMES[i]]={count:0,miss:0,top:'--'};
