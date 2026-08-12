@@ -76,7 +76,7 @@ tr:hover{background:#1e293b}
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 <div class="pick-row">
-<div class="pick-box union"><h4>🔥 三策略并集</h4><div class="label">三策略全部去重·15个码</div><div class="balls" id="ovSpecUnion"></div></div>
+<div class="pick-box union"><h4>🔥 三策略并集</h4><div class="label">按位组合: OM1-3+7-10 / T10 6-12 / 冷门1-3+6+10-12 · 15个码 (回测37%)</div><div class="balls" id="ovSpecUnion"></div></div>
 </div>
 
 <h2>📈 命中趋势表 (自205期累积)</h2>
@@ -414,14 +414,11 @@ for(var n=1;n<50;n++){
 coldCand.sort(function(a,b){return b.m-a.m;});
 var cold12=coldCand.slice(0,12).map(function(x){return x.n;});
 
-// 4. 并集: 去各策略前三
-// 并集: 三策略全部号码去重, 不去前三
+// 4. 并集按位规则: OM 1-3+7-10 | T10 6-12 | 冷门 1-3+6+10-12 (回测37%最优)
+var omSel=[1,2,3,7,8,9,10],t10Sel=[6,7,8,9,10,11,12],coldSel=[1,2,3,6,10,11,12];
 var unionAll={};
-for(var i=0;i<12;i++){
-  unionAll[om12[i]]=1;
-  unionAll[comp12[i]]=1;
-  unionAll[cold12[i]]=1;
-}
+function addGrp(list,idxs){for(var i=0;i<idxs.length;i++){var n=list[idxs[i]-1];if(n!=null&&n!=undefined)unionAll[n]=1;}}
+addGrp(om12,omSel);addGrp(comp12,t10Sel);addGrp(cold12,coldSel);
 var union15=Object.keys(unionAll).map(Number);
 if(union15.length<15){ // fill with OM extras
   for(var i=0;i<omCand.length&&union15.length<15;i++){if(union15.indexOf(omCand[i].n)<0)union15.push(omCand[i].n);}
