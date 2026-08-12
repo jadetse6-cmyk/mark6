@@ -508,7 +508,7 @@ for(var ri=T-revN;ri<T;ri++){
   revHTML+='<tr><td>'+teD.i+'</td><td>'+actual+'('+actualZ+')</td><td>'+hot5.map(function(x){return x.toString().padStart(2,'0');}).join(' ')+'</td><td>'+mid5.map(function(x){return x.toString().padStart(2,'0');}).join(' ')+'</td><td>'+cold5.map(function(x){return x.toString().padStart(2,'0');}).join(' ')+'</td><td>'+top3z2.join('')+'</td><td>'+(h1?'✅':'❌')+'</td><td>'+(h2?'✅':'❌')+'</td><td>'+(h3?'✅':'❌')+'</td><td>'+(sh?'✅':'❌')+'</td></tr>';
 }
 revHTML+='<tr><td class="score-cell">合计</td><td></td><td></td><td></td><td></td><td></td><td class="score-cell">'+revH1+'/'+revN+'</td><td class="score-cell">'+revH2+'/'+revN+'</td><td class="score-cell">'+revH3+'/'+revN+'</td><td class="score-cell">'+revSxH+'/'+revN+'</td></tr>';
-document.getElementById('specReview').innerHTML=revHTML;
+// specReview removed in framework restructure
 
 // Tier trend chart: rolling 10-draw hit rate
 var tierN=20,tierLabels=[],tierHot=[],tierMid=[],tierCold=[];
