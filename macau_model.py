@@ -167,6 +167,28 @@ def score_special_ensemble(stats, rotation, T, top_n=8):
                              'miss':miss,'recent':0,'rot':rotation[n]}
     return dict(sorted(all_nums.items(),key=lambda x:x[1]['total'],reverse=True)[:top_n])
 
+# ── 热号特码: 近10期复出趋势 ──────────────────────────
+def score_special_hot(stats, T, draws):
+    """热号特码: 近10期开过特码的号, 复出次数×60 + 近20期次数×25 + 频次×15"""
+    r10 = {}
+    r20 = {}
+    for i in range(max(0, T-10), T):
+        s = draws[i]['special']
+        r10[s] = r10.get(s, 0) + 1
+    for i in range(max(0, T-20), T):
+        s = draws[i]['special']
+        r20[s] = r20.get(s, 0) + 1
+    max_sc = max(st['spec_count'] for st in stats.values())
+    scores = {}
+    for n in sorted(r10):
+        s = stats[n]
+        freq_n = s['spec_count'] / max_sc * 100
+        total = r10[n]*60 + r20.get(n, 0)*25 + freq_n*0.15
+        scores[n] = {'total': round(total, 1), 'freq': round(freq_n, 1),
+                     'miss': T-1-s['spec_last'] if s['spec_last'] is not None else T,
+                     'r10': r10[n], 'r20': r20.get(n, 0)}
+    return scores
+
 # ── 平码评分 ──────────────────────────────────────────
 def score_flat(stats, rotation, T):
     """平码综合 = 频26-48+漏5-120+尾数 (纯动量,去轮转)"""
@@ -320,7 +342,8 @@ def backtest(draws, window=111):
 
 # ── HTML 生成 ─────────────────────────────────────────
 def build_html(draws, stats, flat_scores, spec_scores, rotation, pos_scores,
-               bt_results, flat_old, spec_old, bt_old, bt_union, spec_ensemble=None):
+               bt_results, flat_old, spec_old, bt_old, bt_union, spec_ensemble=None,
+               hot_scores=None):
     T = len(draws)
     nxt = str(int(draws[-1]['issue']) + 1)
 
@@ -418,6 +441,8 @@ def build_html(draws, stats, flat_scores, spec_scores, rotation, pos_scores,
     un10_str = json.dumps([f'{n:02d}' for n in union10])
     uns6_str = json.dumps([f'{n:02d}' for n in union_s6])
     ens8_str = json.dumps([f'{n:02d}' for n in list(spec_ensemble.keys())[:8]])
+    hot_top6 = sorted(hot_scores.items(), key=lambda x: x[1]['total'], reverse=True)[:6] if hot_scores else []
+    hot6_str = json.dumps([f'{n:02d}' for n, _ in hot_top6])
 
     # 生肖数据
     zod_names = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪']
@@ -446,7 +471,7 @@ def build_html(draws, stats, flat_scores, spec_scores, rotation, pos_scores,
     js_code = f'''\
 var l6={l6_str};var sp6={sp6_str};
 var l6o={l6o_str};var sp6o={sp6o_str};
-var un10={un10_str};var uns6={uns6_str};var ens8={ens8_str};
+var un10={un10_str};var uns6={uns6_str};var ens8={ens8_str};var hot6={hot6_str};
 var zodData={zod_str};
 var crData={cr_str};var specData={spec_str};
 var crrData={crr_str};var posTop={postop_str};
@@ -513,8 +538,8 @@ tr:hover{{background:#1e293b}}
   <div class="balls" id="flatBallsOld"></div>
 </div>
 <div class="pick-box">
-  <h4>🔄 Trend10 (追趋势)</h4>
-  <div class="label">频26-48+漏5-120+尾数 | 覆盖{cov_lz}%</div>
+  <h4>🔄 动量Top6 (优化后)</h4>
+  <div class="label">频15%+漏15%+动45%+轮5%+位10%+加10% | 覆盖{cov_lz}%</div>
   <div class="balls" id="flatBalls"></div>
 </div>
 <div class="pick-box" style="border-color:#34d399;background:linear-gradient(135deg,#1e293b,#064e3b)">
@@ -545,6 +570,11 @@ tr:hover{{background:#1e293b}}
   <h4>🎯 集成特码Top8</h4>
   <div class="label">Cold+HOT+Rot 三策略各取Top3去重</div>
   <div class="balls" id="ensembleSpecBalls"></div>
+</div>
+<div class="pick-box" style="border-color:#f43f5e;background:linear-gradient(135deg,#1e293b,#4c0519)">
+  <h4>🔥 热号特码Top6</h4>
+  <div class="label">近10期复出次数×60+近20期×25+频次×15</div>
+  <div class="balls" id="hotSpecBalls"></div>
 </div>
 </div>
 
@@ -637,6 +667,7 @@ renderSpecBalls('specBallsOld', sp6o);
 renderSpecBalls('specBalls', sp6);
 renderSpecBalls('unionSpecBalls', uns6);
 renderSpecBalls('ensembleSpecBalls', ens8);
+renderSpecBalls('hotSpecBalls', hot6);
 
 // Position grid
 var pg='';
@@ -712,6 +743,9 @@ def main():
     # 集成特码
     spec_ensemble = score_special_ensemble(stats, rotation, T, 8)
 
+    # 热号特码
+    hot_scores = score_special_hot(stats, T, draws)
+
     # 并集
     union10 = compute_union(flat_old, flat_scores, 10)
     union_s6 = compute_union(spec_old, spec_scores, 6)
@@ -736,7 +770,7 @@ def main():
 
     print("\n[4/5] 生成HTML看板...")
     build_html(draws, stats, flat_scores, spec_scores, rotation, pos_scores,
-               bt, flat_old, spec_old, bt_old, bt_union, spec_ensemble)
+               bt, flat_old, spec_old, bt_old, bt_union, spec_ensemble, hot_scores)
 
     # 终端输出
     flat_top = sorted(flat_scores.items(), key=lambda x: x[1]['total'], reverse=True)
@@ -767,6 +801,11 @@ def main():
     print(f"\n🎯 策略4: 混合特码 (线性+三肖)")
     print(f"  特码Top8: {' '.join(f'{n:02d}' for n in hyb_list[:8])}")
     print(f"  来源: 线性Top4 ∪ 三肖({sanxiao[0]}/{sanxiao[1]}/{sanxiao[2]})筛选Top4")
+
+    hot_top = sorted(hot_scores.items(), key=lambda x: x[1]['total'], reverse=True)
+    print(f"\n🔥 策略5: 热号特码 (近10期复出)")
+    for i, (n, s) in enumerate(hot_top[:6], 1):
+        print(f"  {i}. {n:02d} (近10期×{s['r10']} 近20期×{s['r20']} 频次{s['freq']:.0f})")
     print(f"\n🐉 三肖中特: {' · '.join(f'{z}({zod_sc[z]:.0f}分)' for z in sanxiao)}")
 
     nb = len(bt)
