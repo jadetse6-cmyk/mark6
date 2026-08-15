@@ -167,9 +167,9 @@ def score_special_ensemble(stats, rotation, T, top_n=8):
                              'miss':miss,'recent':0,'rot':rotation[n]}
     return dict(sorted(all_nums.items(),key=lambda x:x[1]['total'],reverse=True)[:top_n])
 
-# ── 热号特码: 近10期复出趋势 ──────────────────────────
+# ── 热号特码: 近20期复出趋势 (排除刚开出) ──────────────
 def score_special_hot(stats, T, draws):
-    """热号特码: 近10期开过特码的号, 复出次数×60 + 近20期次数×25 + 频次×15"""
+    """热号特码: 近20期开过特码且遗漏≥2, 近10期复出×60 + 近20期×25 + 频次×15"""
     r10 = {}
     r20 = {}
     for i in range(max(0, T-10), T):
@@ -180,13 +180,22 @@ def score_special_hot(stats, T, draws):
         r20[s] = r20.get(s, 0) + 1
     max_sc = max(st['spec_count'] for st in stats.values())
     scores = {}
-    for n in sorted(r10):
+    seen = set()
+    for i in range(max(0, T-20), T):
+        n = draws[i]['special']
+        if n in seen:
+            continue
+        seen.add(n)
         s = stats[n]
+        miss = T-1-s['spec_last'] if s['spec_last'] is not None else T
+        if miss <= 1:
+            continue  # 刚开出(遗漏≤1)的号不追
+        if n == 26:
+            continue  # 用户指定排除
         freq_n = s['spec_count'] / max_sc * 100
-        total = r10[n]*60 + r20.get(n, 0)*25 + freq_n*0.15
+        total = r10.get(n, 0)*60 + r20.get(n, 0)*25 + freq_n*0.15
         scores[n] = {'total': round(total, 1), 'freq': round(freq_n, 1),
-                     'miss': T-1-s['spec_last'] if s['spec_last'] is not None else T,
-                     'r10': r10[n], 'r20': r20.get(n, 0)}
+                     'miss': miss, 'r10': r10.get(n, 0), 'r20': r20.get(n, 0)}
     return scores
 
 # ── 平码评分 ──────────────────────────────────────────
@@ -573,7 +582,7 @@ tr:hover{{background:#1e293b}}
 </div>
 <div class="pick-box" style="border-color:#f43f5e;background:linear-gradient(135deg,#1e293b,#4c0519)">
   <h4>🔥 热号特码Top6</h4>
-  <div class="label">近10期复出次数×60+近20期×25+频次×15</div>
+  <div class="label">近20期复出·排除遗漏≤1·近10期×60+近20期×25+频次×15</div>
   <div class="balls" id="hotSpecBalls"></div>
 </div>
 </div>
@@ -803,9 +812,9 @@ def main():
     print(f"  来源: 线性Top4 ∪ 三肖({sanxiao[0]}/{sanxiao[1]}/{sanxiao[2]})筛选Top4")
 
     hot_top = sorted(hot_scores.items(), key=lambda x: x[1]['total'], reverse=True)
-    print(f"\n🔥 策略5: 热号特码 (近10期复出)")
+    print(f"\n🔥 策略5: 热号特码 (近20期复出·排除遗漏≤1)")
     for i, (n, s) in enumerate(hot_top[:6], 1):
-        print(f"  {i}. {n:02d} (近10期×{s['r10']} 近20期×{s['r20']} 频次{s['freq']:.0f})")
+        print(f"  {i}. {n:02d} (近10期×{s['r10']} 近20期×{s['r20']} 遗漏{s['miss']} 频次{s['freq']:.0f})")
     print(f"\n🐉 三肖中特: {' · '.join(f'{z}({zod_sc[z]:.0f}分)' for z in sanxiao)}")
 
     nb = len(bt)
