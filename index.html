@@ -82,7 +82,7 @@ tr:hover{background:#1e293b}
 <h2>📈 命中趋势表 (自205期累积)</h2>
 <div class="cols3">
 <div class="card"><h3>🟠 遗漏策略</h3><div id="trendOM"></div></div>
-<div class="card"><h3>🔵 Trend10</h3><div id="trendT10"></div></div>
+<div class="card"><h3>🔥 热号</h3><div id="trendT10"></div></div>
 <div class="card"><h3>🟣 冷门策略</h3><div id="trendCold"></div></div>
 </div>
 
@@ -569,8 +569,20 @@ function buildTrendTable(strat){
       _c.sort(function(a,b){return b.f-a.f;});
       picks=_c.slice(0,12).map(function(x){return x.n;});
     }else if(strat=='T10'){
-      var _c=[];for(var n=1;n<50;n++){var _f2=st3[n].sc,_mm2=tlt2-1-(st3[n].sl||tlt2);var _t=n%10,_f30x=st3[n].f30;
-        if(_f2>=26&&_f2<=48&&_mm2>=5&&_mm2<=120){var _os=20-Math.abs(_mm2-50)/3;var _fs=_f2>=31&&_f2<=35?20:(_f2>=36&&_f2<=40?15:8);var _fls=Math.min(_f30x,8)/8*10;var _ts=(_t==0||_t==2)?25:(_t==3?10:0);_c.push({n:n,s:_os+_fs+_fls+_ts});}}
+      // 热号策略: 近20期开过特码且遗漏≥2(排除26), 近10期×60+近20期×25+频次×15
+      var _r10x={},_r20x={};
+      for(var q=Math.max(0,tlt2-10);q<tlt2;q++){var _sq=ttD[q].s;_r10x[_sq]=(_r10x[_sq]||0)+1;}
+      for(var q=Math.max(0,tlt2-20);q<tlt2;q++){var _sq2=ttD[q].s;_r20x[_sq2]=(_r20x[_sq2]||0)+1;}
+      var _mxc=0;for(var n=1;n<50;n++){if(st3[n].sc>_mxc)_mxc=st3[n].sc;}
+      var _c=[],_seenx={};
+      for(var q=Math.max(0,tlt2-20);q<tlt2;q++){
+        var _sq3=ttD[q].s;
+        if(_seenx[_sq3])continue; _seenx[_sq3]=1;
+        var _mx3=tlt2-1-(st3[_sq3].sl!=null?st3[_sq3].sl:tlt2);
+        if(_mx3<=1)continue;
+        if(_sq3==26)continue;
+        _c.push({n:_sq3,s:(_r10x[_sq3]||0)*60+(_r20x[_sq3]||0)*25+(st3[_sq3].sc/_mxc*100)*0.15});
+      }
       _c.sort(function(a,b){return b.s-a.s;});
       picks=_c.slice(0,12).map(function(x){return x.n;});
     }else{
