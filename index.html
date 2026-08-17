@@ -670,6 +670,12 @@ function buildTrendV6(){
   h+='<div style="display:grid;grid-template-columns:'+colTpl+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
   for(var p=0;p<20;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
   h+='<div style="color:#34d399;padding:2px">'+nhit+'</div></div>';
+  // 下一期预测行 (V6并集20码)
+  h+='<div style="display:grid;grid-template-columns:'+colTpl+';background:#1a2332;border-bottom:1px solid #334155"><div style="color:#fbbf24;font-weight:700;padding:2px">'+nextIssue+'期</div>';
+  for(var p=0;p<20;p++){
+    h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[union15[p]]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+union15[p]+'</span></div>';
+  }
+  h+='<div style="padding:2px;color:#64748b">?</div></div>';
   h+='</div></div>';
   return h;
 }
