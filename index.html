@@ -570,9 +570,11 @@ var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#
 var trendStart2=T;
 for(var i2=0;i2<T;i2++){if(DRAWS[i2].i=='2026205'){trendStart2=i2;break;}}
 function buildTrendTable(strat){
-  var h='<table style="font-size:.6rem;border-collapse:collapse;text-align:center;table-layout:fixed;width:100%"><tr style="color:#94a3b8"><th style="padding:2px 2px">期号</th>';
-  for(var k=1;k<=12;k++)h+='<th style="padding:2px 2px;color:#64748b">'+k+'</th>';
-  h+='<th style="padding:2px 2px">特码</th></tr>';
+  var colTpl2='40px '+Array(12).fill('1fr').join(' ')+' 36px';
+  var h='<div style="overflow-x:auto"><div style="min-width:520px;font-size:.6rem;text-align:center">';
+  h+='<div style="display:grid;grid-template-columns:'+colTpl2+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px">期号</div>';
+  for(var k=1;k<=12;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
+  h+='<div style="padding:2px">特码</div></div>';
   var psum=Array(12).fill(0);
   for(var ti=trendStart2;ti<T;ti++){
     var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
@@ -587,7 +589,6 @@ function buildTrendTable(strat){
       _c.sort(function(a,b){return b.f-a.f;});
       picks=_c.slice(0,12).map(function(x){return x.n;});
     }else if(strat=='T10'){
-      // 热号策略: 近20期开过特码且遗漏≥2(排除26), 近10期×60+近20期×25+频次×15
       var _r10x={},_r20x={};
       for(var q=Math.max(0,tlt2-10);q<tlt2;q++){var _sq=ttD[q].s;_r10x[_sq]=(_r10x[_sq]||0)+1;}
       for(var q=Math.max(0,tlt2-20);q<tlt2;q++){var _sq2=ttD[q].s;_r20x[_sq2]=(_r20x[_sq2]||0)+1;}
@@ -609,18 +610,19 @@ function buildTrendTable(strat){
       picks=_c.slice(0,12).map(function(x){return x.n;});
     }
     var actual=teD2.s,hi=picks.indexOf(actual);
-    h+='<tr><td style="padding:2px 2px;color:#94a3b8">'+DRAWS[ti].i.substring(4)+'</td>';
+    h+='<div style="display:grid;grid-template-columns:'+colTpl2+';border-bottom:1px dashed #2d3a52"><div style="padding:2px;color:#94a3b8">'+DRAWS[ti].i.substring(4)+'</div>';
     for(var p=0;p<12;p++){
       var hit=(p==hi);
       if(hit)psum[p]++;
-      if(hit){h+='<td style="text-align:center;padding:2px 2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td>';}
-      else{h+='<td style="text-align:center;padding:2px 2px;color:#64748b">·</td>';}
+      if(hit){h+='<div style="padding:2px;background:#132a22"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></div>';}
+      else{h+='<div style="padding:2px;color:#64748b">·</div>';}
     }
-    h+='<td style="text-align:center;padding:2px 2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></td></tr>';
+    h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></div></div>';
   }
-  h+='<tr style="font-weight:700"><td style="color:#fbbf24;padding:2px 2px">命中</td>';
-  for(var p=0;p<12;p++)h+='<td style="text-align:center;color:#fbbf24;padding:2px 2px">'+psum[p]+'</td>';
-  h+='<td></td></tr></table>';
+  h+='<div style="display:grid;grid-template-columns:'+colTpl2+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
+  for(var p=0;p<12;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
+  h+='<div style="padding:2px"></div></div>';
+  h+='</div></div>';
   return h;
 }
 document.getElementById('trendOM').innerHTML=buildTrendTable('OM');
