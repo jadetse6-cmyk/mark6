@@ -631,7 +631,7 @@ document.getElementById('trendCold').innerHTML=buildTrendTable('COLD');
 function buildTrendV6(){
   var tstart=T;
   for(var i=0;i<T;i++){if(DRAWS[i].i=='2026210'){tstart=i;break;}}
-  var h='<div style="overflow-x:auto"><table style="font-size:.6rem;border-collapse:collapse;text-align:center;table-layout:fixed;width:100%;min-width:760px"><tr style="color:#94a3b8"><th style="padding:2px 2px"></th>';
+  var h='<div style="overflow-x:auto"><table style="font-size:.6rem;border-collapse:collapse;text-align:center;white-space:nowrap;min-width:760px"><tr style="color:#94a3b8"><th style="padding:2px 2px"></th>';
   for(var k=1;k<=20;k++)h+='<th style="padding:2px 2px;color:#64748b">'+k+'</th>';
   h+='<th style="padding:2px 2px">特码</th></tr>';
   var psum=Array(20).fill(0),nhit=0;
