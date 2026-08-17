@@ -662,10 +662,10 @@ function buildTrendV6(){
     for(var p=0;p<20;p++){
       var hit=(p==hi);
       if(hit){psum[p]++;nhit++;}
-      if(hit){h+='<div style="padding:2px;background:#132a22"><span class="ball" style="width:20px;height:20px;font-size:.52rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></div>';}
+      if(hit){h+='<div style="padding:2px;background:#132a22"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></div>';}
       else{h+='<div style="padding:2px;color:#64748b">·</div>';}
     }
-    h+='<div style="padding:2px"><span class="ball" style="width:20px;height:20px;font-size:.52rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></div></div>';
+    h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></div></div>';
   }
   h+='<div style="display:grid;grid-template-columns:'+colTpl+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
   for(var p=0;p<20;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
