@@ -429,11 +429,11 @@ var omSel=[1,2,3,7,8,9,10],coldSel=[1,2,3,6,10,11,12];
 var unionAll={}, unionOrder=[];
 function addGrp(list,idxs){for(var i=0;i<idxs.length;i++){var n=list[idxs[i]-1];if(n!=null&&n!=undefined&&!unionAll[n]){unionAll[n]=1;unionOrder.push(n);}}}
 addGrp(om12,omSel);addGrp(cold12,coldSel);
-// V6: 短遗漏重复5个 (漏3-10, 频>=30, 按频次取前5) — 近50期贡献7次命中
+// V6: 短遗漏重复5个 (漏2-10, 频>=30) — 近50期贡献7次命中
 var repCand=[];
 for(var rn=1;rn<50;rn++){
   var _rms=T-1-(st[rn].sl!=null?st[rn].sl:T);
-  if(_rms>=3&&_rms<=10&&st[rn].sc>=30)repCand.push({n:rn,f:st[rn].sc});
+  if(_rms>=2&&_rms<=10&&st[rn].sc>=30)repCand.push({n:rn,f:st[rn].sc});
 }
 repCand.sort(function(a,b){return b.f-a.f;});
 addGrp(repCand.slice(0,5).map(function(x){return x.n;}),[1,2,3,4,5]);
@@ -659,7 +659,7 @@ function buildTrendV6(){
     omC.sort(function(a,b){return b.f-a.f;});
     var coldC=[];for(var n=1;n<50;n++){coldC.push({n:n,m:tlt-1-(s3[n].sl!=null?s3[n].sl:tlt)});}
     coldC.sort(function(a,b){return b.m-a.m;});
-    var repC=[];for(var n=1;n<50;n++){var rm=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(rm>=3&&rm<=10&&s3[n].sc>=30)repC.push({n:n,f:s3[n].sc});}
+    var repC=[];for(var n=1;n<50;n++){var rm=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(rm>=2&&rm<=10&&s3[n].sc>=30)repC.push({n:n,f:s3[n].sc});}
     repC.sort(function(a,b){return b.f-a.f;});
     var uni=[];var used={};
     function addL(list,idxs){for(var q=0;q<idxs.length;q++){var nn=list[idxs[q]-1];if(nn!=null&&!used[nn.n]){used[nn.n]=1;uni.push(nn.n);}}}
