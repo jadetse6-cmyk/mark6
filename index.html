@@ -66,6 +66,16 @@ tr:hover{background:#1e293b}
   *{-webkit-tap-highlight-color:transparent}
   .tab-btn{padding:6px 10px;font-size:.72rem;flex:1;white-space:nowrap}
   .tab-row{display:flex;flex-wrap:wrap;gap:6px}
+  .cols4{grid-template-columns:repeat(2,1fr)}
+  /* 趋势表: 手机直接看全列 */
+  .trend-inner{min-width:0 !important;font-size:.5rem}
+  .trend-inner span.ball{width:14px !important;height:14px !important;font-size:.38rem !important;box-shadow:none !important;line-height:14px !important}
+  /* 明细表: 隐藏生肖/近30列 */
+  #flatTable th:nth-child(3),#flatTable td:nth-child(3),
+  #flatTable th:nth-child(7),#flatTable td:nth-child(7){display:none}
+  .cols3 table th:nth-child(3),.cols3 table td:nth-child(3),
+  .cols3 table th:nth-child(5),.cols3 table td:nth-child(5){display:none}
+  table{font-size:.58rem}
 }
 </style>
 </head>
@@ -587,7 +597,7 @@ var trendStart2=T;
 for(var i2=0;i2<T;i2++){if(DRAWS[i2].i=='2026205'){trendStart2=i2;break;}}
 function buildTrendTable(strat){
   var colTpl2='40px '+Array(12).fill('1fr').join(' ')+' 36px';
-  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div style="min-width:520px;font-size:.6rem;text-align:center">';
+  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div class="trend-inner" style="min-width:520px;font-size:.6rem;text-align:center">';
   h+='<div style="display:grid;grid-template-columns:'+colTpl2+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px">期号</div>';
   for(var k=1;k<=12;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
   h+='<div style="padding:2px">特码</div></div>';
@@ -650,7 +660,7 @@ function buildTrendV6(){
   var tstart=T;
   for(var i=0;i<T;i++){if(DRAWS[i].i=='2026210'){tstart=i;break;}}
   var colTpl='40px '+Array(20).fill('1fr').join(' ')+' 36px';
-  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div style="min-width:700px;font-size:.6rem;text-align:center">';
+  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div class="trend-inner" style="min-width:700px;font-size:.6rem;text-align:center">';
   // 表头
   h+='<div style="display:grid;grid-template-columns:'+colTpl+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px"></div>';
   for(var k=1;k<=20;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
