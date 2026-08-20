@@ -648,6 +648,13 @@ function buildTrendTable(strat){
   h+='<div style="display:grid;grid-template-columns:'+colTpl2+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
   for(var p=0;p<12;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
   h+='<div style="padding:2px"></div></div>';
+  // 预测行 (该策略当前期前12码, 与数据行同结构)
+  var predArr=(strat=='OM'?om12:(strat=='T10'?comp12:cold12));
+  h+='<div style="display:grid;grid-template-columns:'+colTpl2+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
+  for(var p=0;p<12;p++){
+    h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[predArr[p]]+';box-shadow:none">'+predArr[p]+'</span></div>';
+  }
+  h+='<div style="padding:2px"></div></div>';
   h+='</div></div>';
   return h;
 }
