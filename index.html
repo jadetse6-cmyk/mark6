@@ -596,7 +596,7 @@ var pc=['#f87171','#f87171','#f87171','#f87171','#f87171','#fbbf24','#fbbf24','#
 var trendStart2=T;
 for(var i2=0;i2<T;i2++){if(DRAWS[i2].i=='2026205'){trendStart2=i2;break;}}
 function buildTrendTable(strat){
-  var colTpl2='40px '+Array(12).fill('1fr').join(' ')+' 36px';
+  var colTpl2='40px '+Array(12).fill('minmax(0,1fr)').join(' ')+' 36px';
   var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div class="trend-inner" style="min-width:520px;font-size:.6rem;text-align:center">';
   h+='<div style="display:grid;grid-template-columns:'+colTpl2+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px">期号</div>';
   for(var k=1;k<=12;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
@@ -659,7 +659,7 @@ document.getElementById('trendCold').innerHTML=buildTrendTable('COLD');
 function buildTrendV6(){
   var tstart=T;
   for(var i=0;i<T;i++){if(DRAWS[i].i=='2026210'){tstart=i;break;}}
-  var colTpl='40px '+Array(20).fill('1fr').join(' ')+' 36px';
+  var colTpl='40px '+Array(20).fill('minmax(0,1fr)').join(' ')+' 36px';
   var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div class="trend-inner" style="min-width:700px;font-size:.6rem;text-align:center">';
   // 表头
   h+='<div style="display:grid;grid-template-columns:'+colTpl+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px"></div>';
