@@ -723,15 +723,11 @@ function buildTrendV6(){
     h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[union21[p]]+';box-shadow:none">'+union21[p]+'</span></div>';
   }
   h+='<div style="padding:2px"></div></div>';
-  // 状态信号行 (近5期池命中 → 下期命中期望, 全历史1546期前推验证)
+  // 策略说明行 (2026-08-24 纠错: 状态信号已证伪-码数混淆+2026后验, 替换为恒定池策略说明)
   var s5=hitSeq.slice(-5).filter(Boolean).length;
-  var stCls,stTxt,stExp,stTip;
-  if(s5>=3){stCls='#34d399';stTxt='高';stExp='42%';stTip='✅ 可信任模型';}
-  else if(s5==2){stCls='#fbbf24';stTxt='中';stExp='32%';stTip='⚠️ 常规期';}
-  else{stCls='#f87171';stTxt='低';stExp='23%';stTip='🔻 低谷期,谨慎加注';}
   var last5=[];
   for(var q=T-5;q<T;q++)last5.push(DRAWS[q].i.substring(4));
-  h+='<div style="display:grid;grid-template-columns:'+colTpl+';margin-top:6px;border:1px dashed #334155;border-radius:6px;background:#0e1626;padding:6px 8px"><div style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:.68rem">📡 状态信号 · 近5期('+last5[0]+'-'+last5[4]+')池命中 <b style="color:'+stCls+'">'+s5+'/5</b> → <b style="color:'+stCls+'">【'+stTxt+'状态】</b> · 下期池命中期望 <b style="color:'+stCls+'">'+stExp+'</b>（无条件基线28.5% · 全历史1546期前推验证） · '+stTip+'</div></div>';
+  h+='<div style="display:grid;grid-template-columns:'+colTpl+';margin-top:6px;border:1px dashed #334155;border-radius:6px;background:#0e1626;padding:6px 8px"><div style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:.68rem">📡 近5期('+last5[0]+'-'+last5[4]+')池命中 <b style="color:#fbbf24">'+s5+'/5</b> · <b style="color:#e2e8f0">策略: 恒定池21码(rot8+温号1)+内幕补位=22码, 均注, 不切换</b>（状态信号已证伪: 码数混淆+2026后验, 勿按状态加注）</div></div>';
   h+='</div></div>';
   return h;
 }
