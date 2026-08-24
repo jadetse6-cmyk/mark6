@@ -1,1 +1,24 @@
 session-*.md
+.DS_Store
+
+# ── 内幕层: 绝不上线 GitHub Pages (与模型层分开管理) ──
+# 内幕预测页 (本地查看)
+local-*.html
+# 内幕页面生成脚本
+gen_234_page.py
+gen_235_page.py
+gen_236_page.py
+gen_core12_trend.py
+gen_trend12.py
+core12-trend.html
+# 内幕回测与投票
+backtest_full.py
+backtest_tier.py
+backtest_weighted.py
+backtest_crossval.py
+neican_fill.py
+signals.json
+# 内幕资料
+咕噜圆预测资料全集.txt
+# 一次性诊断脚本
+diag_headtail*.py
