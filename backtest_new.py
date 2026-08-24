@@ -31,7 +31,8 @@ def build_union(ti, rot=True, warm_n=1):
         mm = tlt - 1 - sl.get(n, tlt)
         if sc.get(n, 0) >= 25 and _lo <= mm <= _hi:
             omC.append([n, sc.get(n, 0), mm])
-    omC.sort(key=lambda x: -x[1])
+    # 2026-08-24 排序键优化(2026口径全窗口验证): 热车道按 频×漏 排序(优先"高频中近期更久未出")
+    omC.sort(key=lambda x: -(x[1] * x[2]))
     coldC = sorted([[n, tlt - 1 - sl.get(n, tlt)] for n in range(1, 50)], key=lambda x: -x[1])
     repC = []
     for n in range(1, 50):
@@ -44,7 +45,8 @@ def build_union(ti, rot=True, warm_n=1):
         rm2 = tlt - 1 - sl.get(n, tlt)
         if sc.get(n, 0) >= 25 and sc.get(n, 0) <= 32 and 20 <= rm2 <= 50:
             warmC.append([n, sc.get(n, 0), rm2])
-    warmC.sort(key=lambda x: -x[1])
+    # 温号同样按 频×漏 排序 (hot+warm 双频×漏为2026全窗口唯一领先组合)
+    warmC.sort(key=lambda x: -(x[1] * x[2]))
 
     uni = []; used = set()
     def addL(lst, idxs):
@@ -54,7 +56,9 @@ def build_union(ti, rot=True, warm_n=1):
                 if nn not in used:
                     used.add(nn); uni.append(nn)
     addL(omC[:12], [1, 2, 3, 7, 8, 9, 10])
-    sel = [1, 2, 3, 6, 8, 10, 11, 12] if (rot and ti % 2 == 0) else [1, 2, 3, 6, 10, 11, 12]
+    # 2026-08-24 含4位变体(用户确认采用): 冷车道取位跳过漏榜第4/5位=结构性盲区(236期11号漏116第4位全灭),
+    #   含4位(奇偶都8位, 21码总量不变) — 2026口径全窗口+验证段+236期11号救回, 代价2025年/1-30段略深负
+    sel = [1, 2, 3, 4, 6, 8, 10, 12] if (rot and ti % 2 == 0) else [1, 2, 3, 4, 6, 10, 11, 12]
     addL(coldC[:12], sel)
     addL(repC[:5], [1, 2, 3, 4, 5])
     for x in omC:
