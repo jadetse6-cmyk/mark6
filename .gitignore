@@ -2,15 +2,22 @@ session-*.md
 .DS_Store
 
 # ── 内幕层: 绝不上线 GitHub Pages (与模型层分开管理) ──
-# 内幕预测页 (本地查看)
+# 内幕预测页/输出 (本地查看)
 local-*.html
+local-*.txt
 # 内幕页面生成脚本
 gen_234_page.py
 gen_235_page.py
 gen_236_page.py
 gen_core12_trend.py
 gen_trend12.py
+gen_cross_page.py
+gen_cold_pool_page.py
+gen_three_layer.py
 core12-trend.html
+# 内幕导出数据
+circle50_history.csv
+每期系统投肖明细.txt
 # 内幕回测与投票
 backtest_full.py
 backtest_tier.py
