@@ -702,7 +702,7 @@ function buildTrendU3(){
   for(var p=0;p<22;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:0;font-size:.42rem">'+psum[p]+'</div>';
   h+='<div style="color:#34d399;padding:2px">'+nhit+'</div></div>';
   h+='<div style="display:grid;grid-template-columns:'+colTpl3+';background:#1a2332"><div style="padding:0;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
-  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<div style="padding:0"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
+  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<div style="padding:0"></div>';continue;}h+='<div style="padding:0;text-align:center"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
   h+='<div style="padding:0"></div></div>';
   h+='</div></div>';
   return h;
