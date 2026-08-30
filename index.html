@@ -69,9 +69,9 @@ tr:hover{background:#1e293b}
   .cols4{grid-template-columns:repeat(2,1fr)}
   /* 趋势表: 手机直接看全列 */
   .trend-inner{min-width:0 !important;font-size:.5rem}  /* 遗漏/热号/冷门三表恢复原样 */
-  .trend-inner.trend-u3{min-width:820px !important;font-size:.62rem}  /* 并集表保持横向滑动 */
+  .trend-inner.trend-u3{font-size:.58rem}  /* 并集表锁定适配手机 */
   .trend-inner span.ball{width:14px !important;height:14px !important;font-size:.38rem !important;line-height:14px !important}
-  .trend-inner.trend-u3 span.ball{width:20px !important;height:20px !important;font-size:.5rem !important;line-height:20px !important}
+  .trend-inner.trend-u3 span.ball{width:14px !important;height:14px !important;font-size:.42rem !important;line-height:14px !important}
   /* 明细表: 隐藏生肖/近30列 */
   #flatTable th:nth-child(3),#flatTable td:nth-child(3),
   #flatTable th:nth-child(7),#flatTable td:nth-child(7){display:none}
@@ -677,8 +677,8 @@ function u3Calc(tlt2,st3){
 }
 function buildTrendU3(){
   // 并集rot8+温号1 趋势 (2026-08-31 用户要求: 替代三策略并集表; 口径=纯频次+含4位+重漏11+温1)
-  var colTpl3='40px '+Array(22).fill('minmax(0,1fr)').join(' ')+' 36px';
-  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px"><div style="font-size:.68rem;color:#64748b;text-align:left;padding:2px 0 4px">← 左右滑动查看 →</div><div class="trend-inner trend-u3" style="min-width:820px;font-size:.62rem;text-align:center">';
+  var colTpl3='26px '+Array(22).fill('1fr').join(' ')+' 26px';  // 锁定适配手机: 22列平分屏宽(2026-08-31)
+  var h='<div><div class="trend-inner trend-u3" style="width:100%;font-size:.58rem;text-align:center">';
   h+='<div style="display:grid;grid-template-columns:'+colTpl3+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px">期号</div>';
   for(var k=1;k<=22;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
   h+='<div style="padding:2px">特码</div></div>';
@@ -693,7 +693,7 @@ function buildTrendU3(){
     for(var p=0;p<22;p++){
       var nm2=u3[p];
       if(nm2==null){h+='<div style="padding:2px"></div>';continue;}
-      if(nm2==teD2.s){psum[p]++;h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.5rem;background:'+WAVE[nm2]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+nm2+'</span></div>';}
+      if(nm2==teD2.s){psum[p]++;h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[nm2]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+nm2+'</span></div>';}
       else h+='<div style="padding:2px;color:#4a5a72;font-weight:600">'+('0'+nm2).slice(-2)+'</div>';
     }
     h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[teD2.s]+'">'+teD2.s+'</span></div></div>';
@@ -702,7 +702,7 @@ function buildTrendU3(){
   for(var p=0;p<22;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
   h+='<div style="color:#34d399;padding:2px">'+nhit+'</div></div>';
   h+='<div style="display:grid;grid-template-columns:'+colTpl3+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
-  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<div style="padding:2px"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.5rem;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
+  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<div style="padding:2px"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
   h+='<div style="padding:2px"></div></div>';
   h+='</div></div>';
   return h;
