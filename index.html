@@ -103,7 +103,7 @@ tr:hover{background:#1e293b}
 <div class="card"><h3>🟠 遗漏策略</h3><div id="trendOM"></div></div>
 <div class="card"><h3>🔥 综合热号</h3><div id="trendT10"></div></div>
 <div class="card"><h3>🟣 冷门策略</h3><div id="trendCold"></div></div>
-<div class="card"><h3>🟤 三策略并集</h3><div id="trend3U"></div></div>
+<div class="card"><h3>🟢 并集rot8+温号1</h3><div id="trend3U"></div></div>
 </div>
 <h2>🏆 <span id="curIssue"></span>期 三策略推荐 (特码)</h2>
 <div class="pick-row">
@@ -676,31 +676,21 @@ function u3Calc(tlt2,st3){
   return u3;
 }
 function buildTrendU3(){
-  // 先扫全段确定最大并集长度, 动态列数(每期28-30码不等, 2026-08-31修复)
-  var maxN=0;
-  for(var ti0=trendStart2;ti0<T;ti0++){
-    var tt0=DRAWS.slice(0,ti0),t0=tt0.length;
-    var st0={};for(var n=1;n<50;n++)st0[n]={sc:0,sl:null};
-    for(var i=0;i<t0;i++){var sn=tt0[i].s;st0[sn].sc++;st0[sn].sl=i;}
-    var l0=u3Calc(t0,st0).length;
-    if(l0>maxN)maxN=l0;
-  }
-  var colTpl3='40px '+Array(maxN).fill('minmax(0,1fr)').join(' ')+' 36px';
+  // 并集rot8+温号1 趋势 (2026-08-31 用户要求: 替代三策略并集表; 口径=纯频次+含4位+重漏11+温1)
+  var colTpl3='40px '+Array(22).fill('minmax(0,1fr)').join(' ')+' 36px';
   var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px"><div style="font-size:.68rem;color:#64748b;text-align:left;padding:2px 0 4px">← 左右滑动查看 →</div><div class="trend-inner trend-u3" style="min-width:820px;font-size:.62rem;text-align:center">';
   h+='<div style="display:grid;grid-template-columns:'+colTpl3+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px">期号</div>';
-  for(var k=1;k<=maxN;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
+  for(var k=1;k<=22;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
   h+='<div style="padding:2px">特码</div></div>';
-  var psum=Array(maxN).fill(0),nhit=0;
-  var startU3=Math.max(trendStart2,T-10);  // 只显示最近10期(2026-08-31: 全段DOM过大手机打不开)
+  var psum=Array(22).fill(0),nhit=0;
+  var startU3=Math.max(trendStart2,T-10);
   for(var ti=startU3;ti<T;ti++){
-    var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
-    var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
-    for(var i=0;i<tlt2;i++){var sn=ttD[i].s;st3[sn].sc++;st3[sn].sl=i;}
-    var u3=u3Calc(tlt2,st3);
-    while(u3.length<maxN)u3.push(null);
+    var teD2=DRAWS[ti];
+    var bu=buildUnion(ti);var u3=bu.uni.concat(bu.warm);
+    while(u3.length<22)u3.push(null);
     var hit=(u3.indexOf(teD2.s)>=0); if(hit)nhit++;
     h+='<div style="display:grid;grid-template-columns:'+colTpl3+';border-bottom:1px dashed #1e293b"><div style="padding:2px">'+teD2.i.substring(4)+'</div>';
-    for(var p=0;p<maxN;p++){
+    for(var p=0;p<22;p++){
       var nm2=u3[p];
       if(nm2==null){h+='<div style="padding:2px"></div>';continue;}
       if(nm2==teD2.s){psum[p]++;h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.5rem;background:'+WAVE[nm2]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+nm2+'</span></div>';}
@@ -709,10 +699,10 @@ function buildTrendU3(){
     h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[teD2.s]+'">'+teD2.s+'</span></div></div>';
   }
   h+='<div style="display:grid;grid-template-columns:'+colTpl3+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
-  for(var p=0;p<maxN;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
+  for(var p=0;p<22;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
   h+='<div style="color:#34d399;padding:2px">'+nhit+'</div></div>';
   h+='<div style="display:grid;grid-template-columns:'+colTpl3+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
-  for(var p=0;p<maxN;p++){var nm2=union3[p];if(nm2==null){h+='<div style="padding:2px"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.5rem;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
+  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<div style="padding:2px"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.5rem;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
   h+='<div style="padding:2px"></div></div>';
   h+='</div></div>';
   return h;
