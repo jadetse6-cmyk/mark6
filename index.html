@@ -457,7 +457,7 @@ function buildUnion(ti){
   warmC.sort(function(a,b){return b.f-a.f;});
   var uni=[],used={};
   function addL(list,idxs){for(var q=0;q<idxs.length;q++){var nn=list[idxs[q]-1];if(nn!=null&&!used[nn.n]){used[nn.n]=1;uni.push(nn.n);}}}
-  addL(omC.slice(0,12),[1,2,3,7,8,9,10]);
+  addL(omC.slice(0,12),[1,2,3,4,7,8,9,10]); // 2026-08-31 含4位(高频中漏码)
   var sel=(ti%2==0)?[1,2,3,6,8,10,11,12]:[1,2,3,6,10,11,12];
   addL(coldC.slice(0,12),sel);
   addL(repC.slice(0,5),[1,2,3,4,5]);
