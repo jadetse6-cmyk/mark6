@@ -101,11 +101,13 @@ tr:hover{background:#1e293b}
 <h2>📈 命中趋势表 (自205期累积)</h2>
 <div class="cols3">
 <div class="card"><h3>🟠 遗漏策略</h3><div id="trendOM"></div></div>
+<div class="card"><h3>🔥 综合热号</h3><div id="trendT10"></div></div>
 <div class="card"><h3>🟣 冷门策略</h3><div id="trendCold"></div></div>
 </div>
 <h2>🏆 <span id="curIssue"></span>期 三策略推荐 (特码)</h2>
 <div class="pick-row">
 <div class="pick-box" style="border-color:#f87171"><h4>📊 遗漏策略</h4><div class="label">遗漏区间法·12个码</div><div class="balls" id="ovSpecOM"></div></div>
+<div class="pick-box" style="border-color:#f43f5e"><h4>🔥 综合热号</h4><div class="label">频≥25·遗漏中位区·频×漏排序 · 12码</div><div class="balls" id="ovSpecComp"></div></div>
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 <div class="pick-row">
@@ -158,6 +160,7 @@ tr:hover{background:#1e293b}
 <h2>🔵 特码三策略 所有数评分 (49)</h2>
 <div class="cols3">
 <div class="card"><h3>🟠 遗漏策略</h3><table id="specTableOM"></table></div>
+<div class="card"><h3>🔥 综合热号</h3><table id="specTableComp"></table></div>
 <div class="card"><h3>🟣 冷门策略</h3><table id="specTableCold"></table></div>
 </div>
 </div>
@@ -414,6 +417,19 @@ omCand.sort(function(a,b){return b.f-a.f;});
 var om12=omCand.slice(0,12).map(function(x){return x.n;});
 
 
+// 2. 综合热号: 频≥25 且 遗漏在中位区, 按 频×漏 排序 (与三层交集模型层热车道同口径)
+var _msv2=[];
+for(var n=1;n<50;n++){_msv2.push(T-1-(st[n].sl!=null?st[n].sl:T));}
+_msv2.sort(function(a,b){return a-b;});
+var _lo2=_msv2[12],_hi2=_msv2[36];
+var hotCand=[];
+for(var n=1;n<50;n++){
+  var _f3=st[n].sc,_m3=T-1-(st[n].sl!=null?st[n].sl:T);
+  if(_f3>=25&&_m3>=_lo2&&_m3<=_hi2)hotCand.push({n:n,f:_f3,m:_m3,s:_f3*_m3});
+}
+hotCand.sort(function(a,b){return b.s-a.s;});
+var hot12=hotCand.slice(0,12).map(function(x){return x.n;});
+
 // 3. 冷门策略: 遗漏最长
 var coldCand=[];
 for(var n=1;n<50;n++){
@@ -466,6 +482,7 @@ addCore(om12,[7,8,9,10]);
 addCore(cold12,[1,2,3]);
 
 renderBalls('ovSpecOM',om12,true);
+renderBalls('ovSpecComp',hot12,true);
 renderBalls('ovSpecCold',cold12,true);
 renderBalls('ovSpecUnion',union21,true);
 renderBalls('ovSpecCore',coreOrder,true);
@@ -647,7 +664,7 @@ function buildTrendTable(strat){
   for(var p=0;p<12;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
   h+='<div style="padding:2px"></div></div>';
   // 预测行 (该策略当前期前12码, 与数据行同结构)
-  var predArr=(strat=='OM'?om12:cold12);
+  var predArr=(strat=='OM'?om12:(strat=='T10'?hot12:cold12));
   h+='<div style="display:grid;grid-template-columns:'+colTpl2+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
   for(var p=0;p<12;p++){
     h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[predArr[p]]+';box-shadow:none">'+predArr[p]+'</span></div>';
@@ -657,6 +674,7 @@ function buildTrendTable(strat){
   return h;
 }
 document.getElementById('trendOM').innerHTML=buildTrendTable('OM');
+document.getElementById('trendT10').innerHTML=buildTrendTable('T10');
 document.getElementById('trendCold').innerHTML=buildTrendTable('COLD');
 
 // ═══ 并集 rot8+温号1 命中趋势 (自210期累积, 21位) ═══
@@ -801,6 +819,14 @@ for(var i=0;i<49;i++){
   omHTML+='<tr'+(d.s>0?' class="top6"':'')+'><td class="rank">'+(i+1)+'</td><td class="num-cell">'+(d.n<10?'0':'')+d.n+'</td><td>'+d.z+'</td><td class="score-cell">'+(d.s>0?d.s:'—')+'</td><td>'+d.f+'</td><td>'+d.m+'</td></tr>';
 }
 document.getElementById('specTableOM').innerHTML=omHTML;
+
+// 综合热号评分表: 频×漏排序 (频≥25 且 遗漏中位区)
+var hotHTML='<tr><th>#</th><th>号</th><th>生肖</th><th>频×漏</th><th>频次</th><th>遗漏</th></tr>';
+for(var i=0;i<hotCand.length;i++){
+  var d=hotCand[i];
+  hotHTML+='<tr'+(i<12?' class="top6"':'')+'><td class="rank">'+(i+1)+'</td><td class="num-cell">'+(d.n<10?'0':'')+d.n+'</td><td>'+ZODIAC[d.n]+'</td><td class="score-cell">'+d.s+'</td><td>'+d.f+'</td><td>'+d.m+'</td></tr>';
+}
+document.getElementById('specTableComp').innerHTML=hotHTML;
 
 
 // 冷门策略: 全部49号按遗漏降序
