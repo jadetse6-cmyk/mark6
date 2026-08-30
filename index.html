@@ -451,7 +451,7 @@ function buildUnion(ti){
   omC.sort(function(a,b){return b.f-a.f;});
   var coldC=[];for(var n=1;n<50;n++){coldC.push({n:n,m:tlt-1-(s3[n].sl!=null?s3[n].sl:tlt)});}
   coldC.sort(function(a,b){return b.m-a.m;});
-  var repC=[];for(var n=1;n<50;n++){var rm=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(rm>=2&&rm<=10&&s3[n].sc>=30)repC.push({n:n,f:s3[n].sc});}
+  var repC=[];for(var n=1;n<50;n++){var rm=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(rm>=2&&rm<=11&&s3[n].sc>=30)repC.push({n:n,f:s3[n].sc});} // 重漏11(2026-08-30)
   repC.sort(function(a,b){return b.f-a.f;});
   var warmC=[];for(var n=1;n<50;n++){var rm2=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(s3[n].sc>=25&&s3[n].sc<=32&&rm2>=20&&rm2<=50)warmC.push({n:n,f:s3[n].sc});}
   warmC.sort(function(a,b){return b.f-a.f;});
@@ -698,7 +698,7 @@ function buildTrendV6(){
     omC.sort(function(a,b){return b.f-a.f;});
     var coldC=[];for(var n=1;n<50;n++){coldC.push({n:n,m:tlt-1-(s3[n].sl!=null?s3[n].sl:tlt)});}
     coldC.sort(function(a,b){return b.m-a.m;});
-    var repC=[];for(var n=1;n<50;n++){var rm=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(rm>=2&&rm<=10&&s3[n].sc>=30)repC.push({n:n,f:s3[n].sc});}
+    var repC=[];for(var n=1;n<50;n++){var rm=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(rm>=2&&rm<=11&&s3[n].sc>=30)repC.push({n:n,f:s3[n].sc});} // 重漏11(2026-08-30)
     repC.sort(function(a,b){return b.f-a.f;});
     var bu=buildUnion(ti);var uni=bu.uni.concat(bu.warm);
     var actual=teD.s,hi=uni.indexOf(actual);
