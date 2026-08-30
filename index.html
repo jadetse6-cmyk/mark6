@@ -98,6 +98,8 @@ tr:hover{background:#1e293b}
 <!-- ═══ OVERVIEW ═══ -->
 <div id="tab-overview">
 
+<h2>🔥 并集 rot8+温号1 命中趋势 (自210期累积)</h2>
+<div class="card"><div id="trendV6"></div></div>
 <h2>📈 命中趋势表 (自205期累积)</h2>
 <div class="cols3">
 <div class="card"><h3>🟠 遗漏策略</h3><div id="trendOM"></div></div>
@@ -110,6 +112,8 @@ tr:hover{background:#1e293b}
 <div class="pick-box" style="border-color:#f43f5e"><h4>🔥 综合热号</h4><div class="label">频≥25·遗漏中位区·频×漏排序 · 12码</div><div class="balls" id="ovSpecComp"></div></div>
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 <div class="pick-box union"><h4>🟤 三策略并集</h4><div class="label">遗漏+综合热号+冷门 · 去重所有数</div><div class="balls" id="ovSpec3Union"></div></div>
+<div class="pick-box union"><h4>🔥 三策略并集 (rot8+温号1)</h4><div class="label">OM+冷门+短重复+温号 · 21个码 · 210-233期 87.5%</div><div class="balls" id="ovSpecUnion"></div></div>
+<div class="pick-box union" style="border-color:#34d399"><h4>💰 核心12码</h4><div class="label">短重复5+OM中段4+冷门头3 · 近50期36% (贡献72%命中)</div><div class="balls" id="ovSpecCore"></div></div>
 </div>
 <div class="pick-row">
 </div>
@@ -475,6 +479,23 @@ repCand.sort(function(a,b){return b.f-a.f;});
 
 renderBalls('ovSpecOM',om12,true);
 renderBalls('ovSpecComp',hot12,true);
+var bu21=buildUnion(T);
+var union21=bu21.uni.concat(bu21.warm);  // 21码: rot8并集20 + 温号1
+// 短遗漏重复5个 (漏2-10, 频>=30) — 近50期贡献7次命中
+var repCand=[];
+for(var rn=1;rn<50;rn++){
+  var _rms=T-1-(st[rn].sl!=null?st[rn].sl:T);
+  if(_rms>=2&&_rms<=10&&st[rn].sc>=30)repCand.push({n:rn,f:st[rn].sc});
+}
+repCand.sort(function(a,b){return b.f-a.f;});
+// 核心12: 短重复5 + OM中段(7-10) + 冷门头(1-3)
+var coreOrder=[];
+function addCore(list,idxs){for(var i=0;i<idxs.length;i++){var n=list[idxs[i]-1];if(n!=null&&n!=undefined&&coreOrder.indexOf(n)<0)coreOrder.push(n);}}
+addCore(repCand.slice(0,5).map(function(x){return x.n;}),[1,2,3,4,5]);
+addCore(om12,[7,8,9,10]);
+addCore(cold12,[1,2,3]);
+renderBalls('ovSpecUnion',union21,true);
+renderBalls('ovSpecCore',coreOrder,true);
 renderBalls('ovSpecCold',cold12,true);
 // 三策略并集 (遗漏+综合热号+冷门 去重, 2026-08-31 用户要求)
 var union3=[];om12.concat(hot12).concat(cold12).forEach(function(n){if(union3.indexOf(n)<0)union3.push(n);});
@@ -656,6 +677,59 @@ function buildTrendTable(strat){
   return h;
 }
 document.getElementById('trendOM').innerHTML=buildTrendTable('OM');
+// ═══ 并集 rot8+温号1 命中趋势 (自210期累积, 21位) ═══
+function buildTrendV6(){
+  var tstart=T;
+  for(var i=0;i<T;i++){if(DRAWS[i].i=='2026210'){tstart=i;break;}}
+  var colTpl='40px '+Array(21).fill('minmax(0,1fr)').join(' ')+' 36px';
+  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div class="trend-inner" style="min-width:740px;font-size:.6rem;text-align:center">';
+  // 表头
+  h+='<div style="display:grid;grid-template-columns:'+colTpl+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px"></div>';
+  for(var k=1;k<=21;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
+  h+='<div style="padding:2px">特码</div></div>';
+  var psum=Array(21).fill(0),nhit=0,hitSeq=[];
+  for(var ti=tstart;ti<T;ti++){
+    var ttD=DRAWS.slice(0,ti),teD=DRAWS[ti],tlt=ttD.length;
+    var s3={};for(var n=1;n<50;n++)s3[n]={sc:0,sl:null};
+    for(var i=0;i<tlt;i++){var sn=ttD[i].s;s3[sn].sc++;s3[sn].sl=i;}
+    var msv=[];for(var n=1;n<50;n++){msv.push(tlt-1-(s3[n].sl!=null?s3[n].sl:tlt));}msv.sort(function(a,b){return a-b;});
+    var _lo=msv[12],_hi=msv[36];
+    var omC=[];for(var n=1;n<50;n++){var mm=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(s3[n].sc>=25&&mm>=_lo&&mm<=_hi)omC.push({n:n,f:s3[n].sc});}
+    omC.sort(function(a,b){return b.f-a.f;});
+    var coldC=[];for(var n=1;n<50;n++){coldC.push({n:n,m:tlt-1-(s3[n].sl!=null?s3[n].sl:tlt)});}
+    coldC.sort(function(a,b){return b.m-a.m;});
+    var repC=[];for(var n=1;n<50;n++){var rm=tlt-1-(s3[n].sl!=null?s3[n].sl:tlt);if(rm>=2&&rm<=11&&s3[n].sc>=30)repC.push({n:n,f:s3[n].sc});} // 重漏11(2026-08-30)
+    repC.sort(function(a,b){return b.f-a.f;});
+    var bu=buildUnion(ti);var uni=bu.uni.concat(bu.warm);
+    var actual=teD.s,hi=uni.indexOf(actual);
+    h+='<div style="display:grid;grid-template-columns:'+colTpl+';border-bottom:1px dashed #2d3a52"><div style="padding:2px;color:#94a3b8">'+DRAWS[ti].i.substring(4)+'</div>';
+    for(var p=0;p<21;p++){
+      var hit=(p==hi);
+      if(hit){psum[p]++;nhit++;}
+      if(hit){h+='<div style="padding:2px;background:#132a22"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></div>';}
+      else{h+='<div style="padding:2px;color:#4a5a72;font-size:.55rem;font-weight:600">'+('0'+uni[p]).slice(-2)+'</div>';}
+    }
+    h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[actual]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+actual+'</span></div></div>';
+    hitSeq.push(hi>=0);
+  }
+  h+='<div style="display:grid;grid-template-columns:'+colTpl+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
+  for(var p=0;p<21;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
+  h+='<div style="color:#34d399;padding:2px">'+nhit+'</div></div>';
+  // 下一期预测行 (并集 rot8+温号1 21码, 与数据行同结构)
+  h+='<div style="display:grid;grid-template-columns:'+colTpl+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
+  for(var p=0;p<21;p++){
+    h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[union21[p]]+';box-shadow:none">'+union21[p]+'</span></div>';
+  }
+  h+='<div style="padding:2px"></div></div>';
+  // 策略说明行 (2026-08-24 纠错: 状态信号已证伪-码数混淆+2026后验, 替换为恒定池策略说明)
+  var s5=hitSeq.slice(-5).filter(Boolean).length;
+  var last5=[];
+  for(var q=T-5;q<T;q++)last5.push(DRAWS[q].i.substring(4));
+  h+='<div style="display:grid;grid-template-columns:'+colTpl+';margin-top:6px;border:1px dashed #334155;border-radius:6px;background:#0e1626;padding:6px 8px"><div style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:.68rem">📡 近5期('+last5[0]+'-'+last5[4]+')池命中 <b style="color:#fbbf24">'+s5+'/5</b> · <b style="color:#e2e8f0">策略: 恒定池21码(rot8+温号1)+内幕补位=22码, 均注, 不切换</b>（状态信号已证伪: 码数混淆+2026后验, 勿按状态加注）</div></div>';
+  h+='</div></div>';
+  return h;
+}
+document.getElementById('trendV6').innerHTML='<div class="rate-line" style="text-align:center;font-size:.7rem;color:#94a3b8;margin-bottom:8px">rot8轮转(奇偶换位) / 温号1 · 灰字=该期预测码 · 彩色球=命中(波色) · 底部=各位置累计命中</div>'+buildTrendV6();
 document.getElementById('trendT10').innerHTML=buildTrendTable('T10');
 document.getElementById('trendCold').innerHTML=buildTrendTable('COLD');
 // 三策略并集趋势 (2026-08-31 用户要求): 遗漏12∪热号12∪冷门12 去重, 滚动逐期
