@@ -101,6 +101,7 @@ tr:hover{background:#1e293b}
 <div class="card"><h3>🟠 遗漏策略</h3><div id="trendOM"></div></div>
 <div class="card"><h3>🔥 综合热号</h3><div id="trendT10"></div></div>
 <div class="card"><h3>🟣 冷门策略</h3><div id="trendCold"></div></div>
+<div class="card"><h3>🟤 三策略并集</h3><div id="trend3U"></div></div>
 </div>
 <h2>🏆 <span id="curIssue"></span>期 三策略推荐 (特码)</h2>
 <div class="pick-row">
@@ -621,20 +622,9 @@ function buildTrendTable(strat){
       _c.sort(function(a,b){return b.f-a.f;});
       picks=_c.slice(0,12).map(function(x){return x.n;});
     }else if(strat=='T10'){
-      var _r10x={},_r20x={};
-      for(var q=Math.max(0,tlt2-10);q<tlt2;q++){var _sq=ttD[q].s;_r10x[_sq]=(_r10x[_sq]||0)+1;}
-      for(var q=Math.max(0,tlt2-20);q<tlt2;q++){var _sq2=ttD[q].s;_r20x[_sq2]=(_r20x[_sq2]||0)+1;}
-      var _mxc=0;for(var n=1;n<50;n++){if(st3[n].sc>_mxc)_mxc=st3[n].sc;}
-      var _c=[],_seenx={};
-      for(var q=Math.max(0,tlt2-20);q<tlt2;q++){
-        var _sq3=ttD[q].s;
-        if(_seenx[_sq3])continue; _seenx[_sq3]=1;
-        var _mx3=tlt2-1-(st3[_sq3].sl!=null?st3[_sq3].sl:tlt2);
-        if(_mx3<=1)continue;
-        if(_sq3==26)continue;
-        _c.push({n:_sq3,s:(_r10x[_sq3]||0)*60+(_r20x[_sq3]||0)*25+(st3[_sq3].sc/_mxc*100)*0.15});
-      }
-      _c.sort(function(a,b){return b.s-a.s;});
+      // 综合热号: 频≥25 且 漏中位区, 频×漏排序 (2026-08-31 修正: 原复出候选逻辑已随热号板块删除作废)
+      var _c=[];for(var n=1;n<50;n++){var _mm3=tlt2-1-(st3[n].sl||tlt2);if(st3[n].sc>=25&&_mm3>=_lo&&_mm3<=_hi)_c.push({n:n,f:st3[n].sc,m:_mm3});}
+      _c.sort(function(a,b){return b.f*b.m-a.f*a.m;});
       picks=_c.slice(0,12).map(function(x){return x.n;});
     }else{
       var _c=[];for(var n=1;n<50;n++){_c.push({n:n,m:tlt2-1-(st3[n].sl||tlt2)});}
@@ -667,6 +657,47 @@ function buildTrendTable(strat){
 document.getElementById('trendOM').innerHTML=buildTrendTable('OM');
 document.getElementById('trendT10').innerHTML=buildTrendTable('T10');
 document.getElementById('trendCold').innerHTML=buildTrendTable('COLD');
+// 三策略并集趋势 (2026-08-31 用户要求): 遗漏12∪热号12∪冷门12 去重, 滚动逐期
+function buildTrendU3(){
+  var colTpl3='40px '+Array(29).fill('minmax(0,1fr)').join(' ')+' 36px';
+  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div class="trend-inner" style="min-width:900px;font-size:.6rem;text-align:center">';
+  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px">期号</div>';
+  for(var k=1;k<=29;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
+  h+='<div style="padding:2px">特码</div></div>';
+  var psum=Array(29).fill(0),nhit=0;
+  for(var ti=trendStart2;ti<T;ti++){
+    var ttD=DRAWS.slice(0,ti),teD2=DRAWS[ti],tlt2=ttD.length;
+    var st3={};for(var n=1;n<50;n++)st3[n]={sc:0,sl:null};
+    for(var i=0;i<tlt2;i++){var sn=ttD[i].s;st3[sn].sc++;st3[sn].sl=i;}
+    var _mis=[];for(var n=1;n<50;n++){_mis.push(tlt2-1-(st3[n].sl||tlt2));}_mis.sort(function(a,b){return a-b;});
+    var _lo=_mis[12],_hi=_mis[36];
+    var _c1=[];for(var n=1;n<50;n++){var _mm3=tlt2-1-(st3[n].sl||tlt2);if(st3[n].sc>=25&&_mm3>=_lo&&_mm3<=_hi)_c1.push({n:n,f:st3[n].sc,m:_mm3});}
+    _c1.sort(function(a,b){return b.f-a.f;}); var omP=_c1.slice(0,12).map(function(x){return x.n;});
+    _c1.sort(function(a,b){return b.f*b.m-a.f*a.m;}); var hotP=_c1.slice(0,12).map(function(x){return x.n;});
+    var _c2=[];for(var n=1;n<50;n++){_c2.push({n:n,m:tlt2-1-(st3[n].sl||tlt2)});}
+    _c2.sort(function(a,b){return b.m-a.m;}); var coldP=_c2.slice(0,12).map(function(x){return x.n;});
+    var u3=[];omP.concat(hotP).concat(coldP).forEach(function(n){if(u3.indexOf(n)<0)u3.push(n);});
+    while(u3.length<29)u3.push(null);
+    var hit=(u3.indexOf(teD2.s)>=0); if(hit)nhit++;
+    h+='<div style="display:grid;grid-template-columns:'+colTpl3+';border-bottom:1px dashed #1e293b"><div style="padding:2px">'+ti+'-'+ttD[ti-1].i.substring(4)+'</div>';
+    for(var p=0;p<29;p++){
+      var nm2=u3[p];
+      if(nm2==null){h+='<div style="padding:2px"></div>';continue;}
+      if(nm2==teD2.s){psum[p]++;h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[nm2]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+nm2+'</span></div>';}
+      else h+='<div style="padding:2px;color:#4a5a72;font-weight:600">'+('0'+nm2).slice(-2)+'</div>';
+    }
+    h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[teD2.s]+'">'+teD2.s+'</span></div></div>';
+  }
+  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
+  for(var p=0;p<29;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
+  h+='<div style="color:#34d399;padding:2px">'+nhit+'</div></div>';
+  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
+  for(var p=0;p<29;p++){var nm2=union3[p];if(nm2==null){h+='<div style="padding:2px"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
+  h+='<div style="padding:2px"></div></div>';
+  h+='</div></div>';
+  return h;
+}
+document.getElementById('trend3U').innerHTML=buildTrendU3();
 
 
 
