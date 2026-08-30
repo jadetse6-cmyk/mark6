@@ -37,7 +37,7 @@ def build_union(ti, rot=True, warm_n=1):
     repC = []
     for n in range(1, 50):
         rm = tlt - 1 - sl.get(n, tlt)
-        if 2 <= rm <= 10 and sc.get(n, 0) >= 30:
+        if 2 <= rm <= 11 and sc.get(n, 0) >= 30:  # 2026-08-30 重漏10→11: 救238期17(漏11夹缝), 210-242扫描24/33→25/33
             repC.append([n, sc.get(n, 0)])
     repC.sort(key=lambda x: -x[1])
     warmC = []
