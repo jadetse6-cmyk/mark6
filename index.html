@@ -109,8 +109,6 @@ tr:hover{background:#1e293b}
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 <div class="pick-row">
-<div class="pick-box union"><h4>🔥 三策略并集 (rot8+温号1)</h4><div class="label">OM+冷门+短重复+温号 · 21个码 · 210-233期 87.5%</div><div class="balls" id="ovSpecUnion"></div></div>
-<div class="pick-box union" style="border-color:#34d399"><h4>💰 核心12码</h4><div class="label">短重复5+OM中段4+冷门头3 · 近50期36% (贡献72%命中)</div><div class="balls" id="ovSpecCore"></div></div>
 </div>
 
 <h2>🐉 三肖中特</h2>
@@ -463,8 +461,6 @@ function buildUnion(ti){
   var warm=[];for(var q=0;q<warmC.length&&warm.length<1;q++){if(!used[warmC[q].n]){warm.push(warmC[q].n);}}
   return {uni:uni,warm:warm};
 }
-var bu21=buildUnion(T);
-var union21=bu21.uni.concat(bu21.warm);  // 21码: rot8并集20 + 温号1
 // 短遗漏重复5个 (漏2-10, 频>=30) — 近50期贡献7次命中
 var repCand=[];
 for(var rn=1;rn<50;rn++){
@@ -473,17 +469,10 @@ for(var rn=1;rn<50;rn++){
 }
 repCand.sort(function(a,b){return b.f-a.f;});
 // 核心12: 短重复5 + OM中段(7-10) + 冷门头(1-3)
-var coreOrder=[];
-function addCore(list,idxs){for(var i=0;i<idxs.length;i++){var n=list[idxs[i]-1];if(n!=null&&n!=undefined&&coreOrder.indexOf(n)<0)coreOrder.push(n);}}
-addCore(repCand.slice(0,5).map(function(x){return x.n;}),[1,2,3,4,5]);
-addCore(om12,[7,8,9,10]);
-addCore(cold12,[1,2,3]);
 
 renderBalls('ovSpecOM',om12,true);
 renderBalls('ovSpecComp',hot12,true);
 renderBalls('ovSpecCold',cold12,true);
-renderBalls('ovSpecUnion',union21,true);
-renderBalls('ovSpecCore',coreOrder,true);
 
 // ═══ 平码三策略 ×6 ═══
 // 1. 遗漏策略 (OM): 平码遗漏区间法
