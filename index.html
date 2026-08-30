@@ -687,7 +687,7 @@ function buildTrendU3(){
     var bu=buildUnion(ti);var u3=bu.uni.concat(bu.warm);
     while(u3.length<22)u3.push(null);
     var hit=(u3.indexOf(teD2.s)>=0); if(hit)nhit++;
-    h+='<tr><td style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#94a3b8;font-weight:600;font-size:.4rem">'+teD2.i.substring(4)+'</td>';
+    h+='<tr><td style="border:1px dashed #2d3a52;padding:0;text-align:center;font-weight:700;font-size:.4rem;color:'+(hit?'#34d399':'#f87171')+'">'+teD2.i.substring(4)+(hit?'✓':'✗')+'</td>';
     for(var p=0;p<22;p++){
       var nm2=u3[p];
       if(nm2==null){h+='<td style="border:1px dashed #2d3a52;padding:0"></td>';continue;}
