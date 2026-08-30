@@ -680,7 +680,7 @@ function buildTrendU3(){
     if(l0>maxN)maxN=l0;
   }
   var colTpl3='40px '+Array(maxN).fill('minmax(0,1fr)').join(' ')+' 36px';
-  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div class="trend-inner" style="min-width:900px;font-size:.6rem;text-align:center">';
+  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px"><div style="font-size:.68rem;color:#64748b;text-align:left;padding:2px 0 4px">← 左右滑动查看 →</div><div class="trend-inner" style="min-width:1150px;font-size:.72rem;text-align:center">';
   h+='<div style="display:grid;grid-template-columns:'+colTpl3+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px">期号</div>';
   for(var k=1;k<=maxN;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
   h+='<div style="padding:2px">特码</div></div>';
@@ -696,7 +696,7 @@ function buildTrendU3(){
     for(var p=0;p<maxN;p++){
       var nm2=u3[p];
       if(nm2==null){h+='<div style="padding:2px"></div>';continue;}
-      if(nm2==teD2.s){psum[p]++;h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[nm2]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+nm2+'</span></div>';}
+      if(nm2==teD2.s){psum[p]++;h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:26px;height:26px;font-size:.62rem;background:'+WAVE[nm2]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+nm2+'</span></div>';}
       else h+='<div style="padding:2px;color:#4a5a72;font-weight:600">'+('0'+nm2).slice(-2)+'</div>';
     }
     h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[teD2.s]+'">'+teD2.s+'</span></div></div>';
@@ -705,7 +705,7 @@ function buildTrendU3(){
   for(var p=0;p<maxN;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
   h+='<div style="color:#34d399;padding:2px">'+nhit+'</div></div>';
   h+='<div style="display:grid;grid-template-columns:'+colTpl3+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
-  for(var p=0;p<maxN;p++){var nm2=union3[p];if(nm2==null){h+='<div style="padding:2px"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:20px;height:20px;font-size:.52rem;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
+  for(var p=0;p<maxN;p++){var nm2=union3[p];if(nm2==null){h+='<div style="padding:2px"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:26px;height:26px;font-size:.62rem;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
   h+='<div style="padding:2px"></div></div>';
   h+='</div></div>';
   return h;
