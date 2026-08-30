@@ -111,6 +111,7 @@ tr:hover{background:#1e293b}
 <div class="pick-box" style="border-color:#f43f5e"><h4>🔥 综合热号</h4><div class="label">频≥25·遗漏中位区·频×漏排序 · 12码</div><div class="balls" id="ovSpecComp"></div></div>
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 <div class="pick-box union"><h4>🟤 三策略并集</h4><div class="label">遗漏+综合热号+冷门 · 去重所有数</div><div class="balls" id="ovSpec3Union"></div></div>
+<div class="pick-box" style="border-color:#34d399"><h4>🟢 并集rot8+温号1</h4><div class="label">热1-4,7-10(纯频次)+冷含4+重5+温1 · 22码 · 210-242期82%</div><div class="balls" id="ovSpecUnion"></div></div>
 </div>
 <div class="pick-row">
 </div>
@@ -477,6 +478,9 @@ repCand.sort(function(a,b){return b.f-a.f;});
 renderBalls('ovSpecOM',om12,true);
 renderBalls('ovSpecComp',hot12,true);
 renderBalls('ovSpecCold',cold12,true);
+var bu21=buildUnion(T);
+var union21=bu21.uni.concat(bu21.warm);
+renderBalls('ovSpecUnion',union21,true);
 // 三策略并集 (遗漏+综合热号+冷门 去重, 2026-08-31 用户要求)
 var union3=[];om12.concat(hot12).concat(cold12).forEach(function(n){if(union3.indexOf(n)<0)union3.push(n);});
 renderBalls('ovSpec3Union',union3,true);
