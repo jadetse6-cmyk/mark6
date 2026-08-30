@@ -101,13 +101,11 @@ tr:hover{background:#1e293b}
 <h2>📈 命中趋势表 (自205期累积)</h2>
 <div class="cols3">
 <div class="card"><h3>🟠 遗漏策略</h3><div id="trendOM"></div></div>
-<div class="card"><h3>🔥 热号</h3><div id="trendT10"></div></div>
 <div class="card"><h3>🟣 冷门策略</h3><div id="trendCold"></div></div>
 </div>
 <h2>🏆 <span id="curIssue"></span>期 三策略推荐 (特码)</h2>
 <div class="pick-row">
 <div class="pick-box" style="border-color:#f87171"><h4>📊 遗漏策略</h4><div class="label">遗漏区间法·12个码</div><div class="balls" id="ovSpecOM"></div></div>
-<div class="pick-box" style="border-color:#f43f5e"><h4>🔥 热号策略</h4><div class="label">近20期复出·排除遗漏≤1·近10期×60+近20期×25+频次×15</div><div class="balls" id="ovSpecComp"></div></div>
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 </div>
 <div class="pick-row">
@@ -160,7 +158,6 @@ tr:hover{background:#1e293b}
 <h2>🔵 特码三策略 所有数评分 (49)</h2>
 <div class="cols3">
 <div class="card"><h3>🟠 遗漏策略</h3><table id="specTableOM"></table></div>
-<div class="card"><h3>🔥 热号</h3><table id="specTableComp"></table></div>
 <div class="card"><h3>🟣 冷门策略</h3><table id="specTableCold"></table></div>
 </div>
 </div>
@@ -416,21 +413,6 @@ for(var n=1;n<50;n++){
 omCand.sort(function(a,b){return b.f-a.f;});
 var om12=omCand.slice(0,12).map(function(x){return x.n;});
 
-// 2. 热号策略: 近20期开过特码且遗漏≥2, 近10期复出×60+近20期×25+频次×15
-var _r10={},_r20={};
-for(var _j=T-10;_j<T;_j++){var _sn1=DRAWS[_j].s;_r10[_sn1]=(_r10[_sn1]||0)+1;}
-for(var _j=T-20;_j<T;_j++){var _sn2=DRAWS[_j].s;_r20[_sn2]=(_r20[_sn2]||0)+1;}
-var _mxsc2=0;for(var n=1;n<50;n++){if(st[n].sc>_mxsc2)_mxsc2=st[n].sc;}
-var compCand=[];
-for(var _j=T-20;_j<T;_j++){var _sn3=DRAWS[_j].s;
-  if(compCand.some(function(c){return c.n==_sn3;}))continue;
-  var _miss3=T-1-(st[_sn3].sl!=null?st[_sn3].sl:T);
-  if(_miss3<=1)continue; // 刚开出(遗漏≤1)的号不追
-  if(_sn3==26)continue; // 用户指定排除
-  compCand.push({n:_sn3,s:(_r10[_sn3]||0)*60+(_r20[_sn3]||0)*25+(st[_sn3].sc/_mxsc2*100)*0.15});
-}
-compCand.sort(function(a,b){return b.s-a.s;});
-var comp12=compCand.slice(0,12).map(function(x){return x.n;});
 
 // 3. 冷门策略: 遗漏最长
 var coldCand=[];
@@ -484,7 +466,6 @@ addCore(om12,[7,8,9,10]);
 addCore(cold12,[1,2,3]);
 
 renderBalls('ovSpecOM',om12,true);
-renderBalls('ovSpecComp',comp12,true);
 renderBalls('ovSpecCold',cold12,true);
 renderBalls('ovSpecUnion',union21,true);
 renderBalls('ovSpecCore',coreOrder,true);
@@ -666,7 +647,7 @@ function buildTrendTable(strat){
   for(var p=0;p<12;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
   h+='<div style="padding:2px"></div></div>';
   // 预测行 (该策略当前期前12码, 与数据行同结构)
-  var predArr=(strat=='OM'?om12:(strat=='T10'?comp12:cold12));
+  var predArr=(strat=='OM'?om12:cold12);
   h+='<div style="display:grid;grid-template-columns:'+colTpl2+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
   for(var p=0;p<12;p++){
     h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[predArr[p]]+';box-shadow:none">'+predArr[p]+'</span></div>';
@@ -676,7 +657,6 @@ function buildTrendTable(strat){
   return h;
 }
 document.getElementById('trendOM').innerHTML=buildTrendTable('OM');
-document.getElementById('trendT10').innerHTML=buildTrendTable('T10');
 document.getElementById('trendCold').innerHTML=buildTrendTable('COLD');
 
 // ═══ 并集 rot8+温号1 命中趋势 (自210期累积, 21位) ═══
@@ -822,20 +802,6 @@ for(var i=0;i<49;i++){
 }
 document.getElementById('specTableOM').innerHTML=omHTML;
 
-// 综合策略 Trend10: 全部49号, 未候选=0
-var compScore={};compCand.forEach(function(c){compScore[c.n]=c.s;});
-var compAll=[];
-for(var n=1;n<50;n++){
-  var _f2=st[n].sc,_mm2=T-1-(st[n].sl!=null?st[n].sl:T);
-  compAll.push({n:n,z:ZODIAC[n],s:compScore[n]||0,f:_f2,m:_mm2});
-}
-compAll.sort(function(a,b){return b.s-a.s;});
-var compHTML='<tr><th>#</th><th>号</th><th>生肖</th><th>评分</th><th>频次</th><th>遗漏</th></tr>';
-for(var i=0;i<49;i++){
-  var d=compAll[i];
-  compHTML+='<tr'+(d.s>0?' class="top6"':'')+'><td class="rank">'+(i+1)+'</td><td class="num-cell">'+(d.n<10?'0':'')+d.n+'</td><td>'+d.z+'</td><td class="score-cell">'+(d.s>0?d.s.toFixed(0):'—')+'</td><td>'+d.f+'</td><td>'+d.m+'</td></tr>';
-}
-document.getElementById('specTableComp').innerHTML=compHTML;
 
 // 冷门策略: 全部49号按遗漏降序
 var coldHTML='<tr><th>#</th><th>号</th><th>生肖</th><th>评分</th><th>频次</th><th>遗漏</th></tr>';
