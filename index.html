@@ -68,8 +68,8 @@ tr:hover{background:#1e293b}
   .tab-row{display:flex;flex-wrap:wrap;gap:6px}
   .cols4{grid-template-columns:repeat(2,1fr)}
   /* 趋势表: 手机直接看全列 */
-  .trend-inner{min-width:0 !important;font-size:.5rem}
-  .trend-inner span.ball{width:14px !important;height:14px !important;font-size:.38rem !important;box-shadow:none !important;line-height:14px !important}
+  .trend-inner{font-size:.7rem}  /* 小屏保持完整宽度可横向滑动(2026-08-31修复) */
+  .trend-inner span.ball{width:24px !important;height:24px !important;font-size:.6rem !important;line-height:24px !important}
   /* 明细表: 隐藏生肖/近30列 */
   #flatTable th:nth-child(3),#flatTable td:nth-child(3),
   #flatTable th:nth-child(7),#flatTable td:nth-child(7){display:none}
