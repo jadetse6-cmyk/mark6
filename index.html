@@ -100,7 +100,6 @@ tr:hover{background:#1e293b}
 
 <h2>📈 命中趋势表 (自205期累积)</h2>
 <div class="cols3">
-<div class="card"><h3>🔥 并集 rot8+温号1 命中趋势 (自210期累积)</h3><div id="trend3U"></div></div>
 <div class="card"><h3>🟠 遗漏策略</h3><div id="trendOM"></div></div>
 <div class="card"><h3>🔥 综合热号</h3><div id="trendT10"></div></div>
 <div class="card"><h3>🟣 冷门策略</h3><div id="trendCold"></div></div>
@@ -111,7 +110,6 @@ tr:hover{background:#1e293b}
 <div class="pick-box" style="border-color:#f43f5e"><h4>🔥 综合热号</h4><div class="label">频≥25·遗漏中位区·频×漏排序 · 12码</div><div class="balls" id="ovSpecComp"></div></div>
 <div class="pick-box" style="border-color:#60a5fa"><h4>❄️ 冷门策略</h4><div class="label">极冷超期·12个码</div><div class="balls" id="ovSpecCold"></div></div>
 <div class="pick-box union"><h4>🟤 三策略并集</h4><div class="label">遗漏+综合热号+冷门 · 去重所有数</div><div class="balls" id="ovSpec3Union"></div></div>
-<div class="pick-box" style="border-color:#34d399"><h4>🟢 并集rot8+温号1</h4><div class="label">热1-4,7-10(纯频次)+冷含4+重5+温1 · 22码 · 210-242期82%</div><div class="balls" id="ovSpecUnion"></div></div>
 </div>
 <div class="pick-row">
 </div>
@@ -478,9 +476,6 @@ repCand.sort(function(a,b){return b.f-a.f;});
 renderBalls('ovSpecOM',om12,true);
 renderBalls('ovSpecComp',hot12,true);
 renderBalls('ovSpecCold',cold12,true);
-var bu21=buildUnion(T);
-var union21=bu21.uni.concat(bu21.warm);
-renderBalls('ovSpecUnion',union21,true);
 // 三策略并集 (遗漏+综合热号+冷门 去重, 2026-08-31 用户要求)
 var union3=[];om12.concat(hot12).concat(cold12).forEach(function(n){if(union3.indexOf(n)<0)union3.push(n);});
 renderBalls('ovSpec3Union',union3,true);
@@ -675,40 +670,6 @@ function u3Calc(tlt2,st3){
   var u3=[];omP.concat(hotP).concat(coldP).forEach(function(n){if(u3.indexOf(n)<0)u3.push(n);});
   return u3;
 }
-function buildTrendU3(){
-  // 并集趋势表: 恢复union-trend-rot8.html同款table格式(2026-08-31用户指定)
-  var tstart=T;
-  for(var i=0;i<T;i++){if(DRAWS[i].i=='2026210'){tstart=i;break;}}
-  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="border-collapse:collapse;width:100%;max-width:1200px;margin:0 auto;font-size:.6rem">';
-  h+='<tr><th style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#94a3b8;font-weight:600;background:#111a2e">期号</th>';
-  for(var k=1;k<=22;k++)h+='<th style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#94a3b8;font-weight:600;background:#111a2e">'+k+'</th>';
-  h+='<th style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#94a3b8;font-weight:600;background:#111a2e">特码</th></tr>';
-  var psum=Array(22).fill(0),nhit=0;
-  for(var ti=tstart;ti<T;ti++){
-    var teD=DRAWS[ti];
-    var bu=buildUnion(ti);var u3=bu.uni.concat(bu.warm);
-    while(u3.length<22)u3.push(null);
-    var hit=(u3.indexOf(teD.s)>=0); if(hit)nhit++;
-    h+='<tr><td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#94a3b8;font-weight:600">'+teD.i.substring(4)+'</td>';
-    for(var p=0;p<22;p++){
-      var nm2=u3[p];
-      if(nm2==null){h+='<td style="border:1px dashed #2d3a52;padding:2px 3px"></td>';continue;}
-      if(nm2==teD.s){psum[p]++;h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;background:#238636;color:#fff;font-weight:700">'+('0'+nm2).slice(-2)+'</td>';}
-      else h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#4a5a72;font-size:.55rem">'+('0'+nm2).slice(-2)+'</td>';
-    }
-    h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center"><span class="ball" style="display:inline-block;width:26px;height:26px;line-height:26px;border-radius:50%;color:#fff;font-weight:700;font-size:11px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4);background:'+WAVE[teD.s]+'">'+teD.s+'</span></td></tr>';
-  }
-  h+='<tr style="font-weight:700;color:#94a3b8;border-top:2px solid #334155"><td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center">累计</td>';
-  for(var p=0;p<22;p++)h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:'+(psum[p]>=5?'#fbbf24':(psum[p]>0?'#fbbf24':'#475569'))+'">'+psum[p]+'</td>';
-  h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#34d399">'+nhit+'</td></tr>';
-  h+='<tr style="background:#1a2332"><td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</td>';
-  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<td style="border:1px dashed #2d3a52;padding:2px 3px"></td>';continue;}h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;font-weight:700;color:#e2e8f0"><span class="ball" style="display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;color:#fff;font-weight:700;font-size:9px;text-align:center;box-shadow:none;background:'+WAVE[nm2]+'">'+nm2+'</span></td>';}
-  h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#475569">?</td></tr>';
-  h+='</table></div>';
-  h+='<div style="text-align:center;font-size:.65rem;color:#64748b;margin-top:6px">灰色=并集预测号 · 彩色球=命中(波色) · 末列=特码 · 累计行≥5次金色 · 最后一行='+nextIssue.substring(4)+'期预测</div>';
-  return h;
-}
-document.getElementById('trend3U').innerHTML=buildTrendU3();
 
 
 
