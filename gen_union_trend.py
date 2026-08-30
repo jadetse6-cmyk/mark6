@@ -60,11 +60,12 @@ for p in range(21):
 sum_cells.append(f'<td class="sum hot">{ok}/{n}</td>')
 sum_tr = '<tr class="sum">' + ''.join(sum_cells) + '</tr>'
 
-# 预测行: 237期 (数据至236, k=len(draws) 即下一期)
+# 预测行: 下一期 (数据至最新开奖, k=len(draws))
 k = len(draws)
+ISSUE = int(draws[-1]['i'][-3:]) + 1
 u20, w1 = build_union(k, rot=True, warm_n=1)
 pred = u20 + w1
-pred_cells = ['<td class="iss">237期</td>']
+pred_cells = ['<td class="iss">%d期</td>' % ISSUE]
 for num in pred:
     pred_cells.append(f'<td class="pred">{num}</td>')
 pred_cells.append('<td class="pred">?</td>')
@@ -121,11 +122,11 @@ tr.pred td.pred{{color:#e2e8f0;font-weight:700}}
 {sum_tr}
 {pred_tr}
 </table>
-<div class="legend">灰色=并集预测号 · 彩色球=命中(波色) · 汇总行=各码位累计命中(≥5次金色) · 状态行=近5期池命中数(展示用, 状态信号已证伪勿作加注依据) · 最后一行=237期预测</div>
+<div class="legend">灰色=并集预测号 · 彩色球=命中(波色) · 汇总行=各码位累计命中(≥5次金色) · 状态行=近5期池命中数(展示用, 状态信号已证伪勿作加注依据) · 最后一行=下期预测</div>
 </body>
 </html>'''
 out = '/Users/xiejinyu/macau-mark6/union-trend-rot8.html'
 open(out, 'w').write(html)
 print('已生成', out)
 print(f'累计 {ok}/{n} = {ok/n*100:.0f}%  期望 {ok/n*47-21:+.1f}/期')
-print(f'237期预测: {" ".join("%02d"%x for x in pred)}')
+print(f'{ISSUE}期预测: {" ".join("%02d"%x for x in pred)}')
