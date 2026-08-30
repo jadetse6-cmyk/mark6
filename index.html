@@ -676,32 +676,32 @@ function u3Calc(tlt2,st3){
   return u3;
 }
 function buildTrendU3(){
-  // 并集rot8+温号1 趋势表 (2026-08-31 重做: 照union-trend-rot8.html标准table样式)
-  var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="border-collapse:collapse;width:100%;max-width:1200px;margin:0 auto;font-size:.6rem">';
-  h+='<tr><th style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#94a3b8;background:#111a2e">期</th>';
-  for(var k=1;k<=22;k++)h+='<th style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#94a3b8;background:#111a2e">'+k+'</th>';
-  h+='<th style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#94a3b8;background:#111a2e">特码</th></tr>';
+  // 并集rot8+温号1 趋势表 (2026-08-31: 手机完整显示不滑动, table-layout:fixed)
+  var h='<div><table style="border-collapse:collapse;width:100%;table-layout:fixed;font-size:.4rem">';
+  h+='<tr><th style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#94a3b8;background:#111a2e">期</th>';
+  for(var k=1;k<=22;k++)h+='<th style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#94a3b8;background:#111a2e">'+k+'</th>';
+  h+='<th style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#94a3b8;background:#111a2e">码</th></tr>';
   var psum=Array(22).fill(0),nhit=0;
   for(var ti=trendStart2;ti<T;ti++){
     var teD2=DRAWS[ti];
     var bu=buildUnion(ti);var u3=bu.uni.concat(bu.warm);
     while(u3.length<22)u3.push(null);
     var hit=(u3.indexOf(teD2.s)>=0); if(hit)nhit++;
-    h+='<tr><td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#94a3b8;font-weight:600">'+teD2.i.substring(4)+'</td>';
+    h+='<tr><td style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#94a3b8;font-weight:600;font-size:.4rem">'+teD2.i.substring(4)+'</td>';
     for(var p=0;p<22;p++){
       var nm2=u3[p];
-      if(nm2==null){h+='<td style="border:1px dashed #2d3a52;padding:2px 3px"></td>';continue;}
-      if(nm2==teD2.s){psum[p]++;h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;background:#132a22"><span class="ball" style="display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;color:#fff;font-weight:700;font-size:9px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4);background:'+WAVE[nm2]+'">'+nm2+'</span></td>';}
-      else h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#4a5a72;font-size:.55rem">'+('0'+nm2).slice(-2)+'</td>';
+      if(nm2==null){h+='<td style="border:1px dashed #2d3a52;padding:0"></td>';continue;}
+      if(nm2==teD2.s){psum[p]++;h+='<td style="border:1px dashed #2d3a52;padding:0;text-align:center;background:#132a22"><span class="ball" style="display:inline-block;width:12px;height:12px;line-height:12px;border-radius:50%;color:#fff;font-weight:700;font-size:6px;text-align:center;background:'+WAVE[nm2]+'">'+nm2+'</span></td>';}
+      else h+='<td style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#4a5a72;font-size:.4rem">'+('0'+nm2).slice(-2)+'</td>';
     }
-    h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center"><span class="ball" style="display:inline-block;width:26px;height:26px;line-height:26px;border-radius:50%;color:#fff;font-weight:700;font-size:11px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4);background:'+WAVE[teD2.s]+'">'+teD2.s+'</span></td></tr>';
+    h+='<td style="border:1px dashed #2d3a52;padding:0;text-align:center"><span class="ball" style="display:inline-block;width:14px;height:14px;line-height:14px;border-radius:50%;color:#fff;font-weight:700;font-size:7px;text-align:center;background:'+WAVE[teD2.s]+'">'+teD2.s+'</span></td></tr>';
   }
-  h+='<tr style="font-weight:700;color:#94a3b8;border-top:2px solid #334155"><td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center">命中</td>';
-  for(var p=0;p<22;p++)h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+'">'+psum[p]+'</td>';
-  h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#34d399">'+nhit+'</td></tr>';
-  h+='<tr style="background:#1a2332"><td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</td>';
-  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<td style="border:1px dashed #2d3a52;padding:2px 3px"></td>';continue;}h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;font-weight:700;color:#e2e8f0"><span class="ball" style="display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;color:#fff;font-weight:700;font-size:9px;text-align:center;box-shadow:none;background:'+WAVE[nm2]+'">'+nm2+'</span></td>';}
-  h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#475569">?</td></tr>';
+  h+='<tr style="font-weight:700;color:#94a3b8;border-top:2px solid #334155"><td style="border:1px dashed #2d3a52;padding:0;text-align:center">中</td>';
+  for(var p=0;p<22;p++)h+='<td style="border:1px dashed #2d3a52;padding:0;text-align:center;font-size:.4rem;color:'+(psum[p]>0?'#fbbf24':'#475569')+'">'+psum[p]+'</td>';
+  h+='<td style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#34d399">'+nhit+'</td></tr>';
+  h+='<tr style="background:#1a2332"><td style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#fbbf24;font-weight:700;font-size:.4rem">'+nextIssue.substring(4)+'期</td>';
+  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<td style="border:1px dashed #2d3a52;padding:0"></td>';continue;}h+='<td style="border:1px dashed #2d3a52;padding:0;text-align:center"><span class="ball" style="display:inline-block;width:12px;height:12px;line-height:12px;border-radius:50%;color:#fff;font-weight:700;font-size:6px;text-align:center;background:'+WAVE[nm2]+'">'+nm2+'</span></td>';}
+  h+='<td style="border:1px dashed #2d3a52;padding:0;text-align:center;color:#475569">?</td></tr>';
   h+='</table></div>';
   return h;
 }
