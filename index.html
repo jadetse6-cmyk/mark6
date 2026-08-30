@@ -683,7 +683,7 @@ function buildTrendU3(){
   for(var k=1;k<=22;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
   h+='<div style="padding:2px">特码</div></div>';
   var psum=Array(22).fill(0),nhit=0;
-  var startU3=Math.max(trendStart2,T-10);
+  var startU3=trendStart2;  // 205期起全段显示(2026-08-31用户要求)
   for(var ti=startU3;ti<T;ti++){
     var teD2=DRAWS[ti];
     var bu=buildUnion(ti);var u3=bu.uni.concat(bu.warm);
