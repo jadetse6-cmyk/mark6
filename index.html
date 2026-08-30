@@ -649,14 +649,14 @@ function buildTrendTable(strat){
   }
   h+='<div style="display:grid;grid-template-columns:'+colTpl2+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
   for(var p=0;p<12;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
-  h+='<div style="padding:2px"></div></div>';
+  h+='<div style="padding:0"></div></div>';
   // 预测行 (该策略当前期前12码, 与数据行同结构)
   var predArr=(strat=='OM'?om12:(strat=='T10'?hot12:cold12));
   h+='<div style="display:grid;grid-template-columns:'+colTpl2+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
   for(var p=0;p<12;p++){
     h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[predArr[p]]+';box-shadow:none">'+predArr[p]+'</span></div>';
   }
-  h+='<div style="padding:2px"></div></div>';
+  h+='<div style="padding:0"></div></div>';
   h+='</div></div>';
   return h;
 }
@@ -677,11 +677,11 @@ function u3Calc(tlt2,st3){
 }
 function buildTrendU3(){
   // 并集rot8+温号1 趋势 (2026-08-31 用户要求: 替代三策略并集表; 口径=纯频次+含4位+重漏11+温1)
-  var colTpl3='26px '+Array(22).fill('1fr').join(' ')+' 26px';  // 锁定适配手机: 22列平分屏宽(2026-08-31)
+  var colTpl3='22px '+Array(22).fill('1fr').join(' ')+' 22px';  // 锁定适配手机
   var h='<div><div class="trend-inner trend-u3" style="width:100%;font-size:.58rem;text-align:center">';
-  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:2px">期号</div>';
-  for(var k=1;k<=22;k++)h+='<div style="padding:2px;color:#64748b">'+k+'</div>';
-  h+='<div style="padding:2px">特码</div></div>';
+  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';color:#94a3b8;border-bottom:1px solid #2d3a52"><div style="padding:0">期号</div>';
+  for(var k=1;k<=22;k++)h+='<div style="padding:0;color:#64748b">'+k+'</div>';
+  h+='<div style="padding:0">特码</div></div>';
   var psum=Array(22).fill(0),nhit=0;
   var startU3=trendStart2;  // 205期起全段显示(2026-08-31用户要求)
   for(var ti=startU3;ti<T;ti++){
@@ -689,21 +689,21 @@ function buildTrendU3(){
     var bu=buildUnion(ti);var u3=bu.uni.concat(bu.warm);
     while(u3.length<22)u3.push(null);
     var hit=(u3.indexOf(teD2.s)>=0); if(hit)nhit++;
-    h+='<div style="display:grid;grid-template-columns:'+colTpl3+';border-bottom:1px dashed #1e293b"><div style="padding:2px">'+teD2.i.substring(4)+'</div>';
+    h+='<div style="display:grid;grid-template-columns:'+colTpl3+';border-bottom:1px dashed #1e293b"><div style="padding:0">'+teD2.i.substring(4)+'</div>';
     for(var p=0;p<22;p++){
       var nm2=u3[p];
-      if(nm2==null){h+='<div style="padding:2px"></div>';continue;}
-      if(nm2==teD2.s){psum[p]++;h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[nm2]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+nm2+'</span></div>';}
-      else h+='<div style="padding:2px;color:#4a5a72;font-weight:600">'+('0'+nm2).slice(-2)+'</div>';
+      if(nm2==null){h+='<div style="padding:0"></div>';continue;}
+      if(nm2==teD2.s){psum[p]++;h+='<div style="padding:0"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[nm2]+';box-shadow:0 2px 6px rgba(0,0,0,.3)">'+nm2+'</span></div>';}
+      else h+='<div style="padding:0;color:#4a5a72;font-weight:600;font-size:.52rem">'+('0'+nm2).slice(-2)+'</div>';
     }
-    h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:22px;height:22px;font-size:.55rem;background:'+WAVE[teD2.s]+'">'+teD2.s+'</span></div></div>';
+    h+='<div style="padding:0"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[teD2.s]+'">'+teD2.s+'</span></div></div>';
   }
-  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';font-weight:700"><div style="color:#fbbf24;padding:2px">命中</div>';
-  for(var p=0;p<22;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:2px">'+psum[p]+'</div>';
+  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';font-weight:700"><div style="color:#fbbf24;padding:0">命中</div>';
+  for(var p=0;p<22;p++)h+='<div style="text-align:center;color:'+(psum[p]>0?'#fbbf24':'#475569')+';padding:0;font-size:.52rem">'+psum[p]+'</div>';
   h+='<div style="color:#34d399;padding:2px">'+nhit+'</div></div>';
-  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';background:#1a2332"><div style="padding:2px;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
-  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<div style="padding:2px"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
-  h+='<div style="padding:2px"></div></div>';
+  h+='<div style="display:grid;grid-template-columns:'+colTpl3+';background:#1a2332"><div style="padding:0;color:#fbbf24;font-weight:700">'+nextIssue.substring(4)+'期</div>';
+  for(var p=0;p<22;p++){var nm2=union21[p];if(nm2==null){h+='<div style="padding:0"></div>';continue;}h+='<div style="padding:2px"><span class="ball" style="display:inline-flex;width:14px;height:14px;font-size:.42rem;line-height:14px;background:'+WAVE[nm2]+';box-shadow:none">'+nm2+'</span></div>';}
+  h+='<div style="padding:0"></div></div>';
   h+='</div></div>';
   return h;
 }
