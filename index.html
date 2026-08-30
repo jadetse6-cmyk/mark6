@@ -693,7 +693,7 @@ function buildTrendU3(){
     for(var p=0;p<22;p++){
       var nm2=u3[p];
       if(nm2==null){h+='<td style="border:1px dashed #2d3a52;padding:2px 3px"></td>';continue;}
-      if(nm2==teD.s){psum[p]++;h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;background:#132a22"><span class="ball" style="display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;color:#fff;font-weight:700;font-size:9px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4);background:'+WAVE[nm2]+'">'+nm2+'</span></td>';}
+      if(nm2==teD.s){psum[p]++;h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;background:#238636;color:#fff;font-weight:700">'+('0'+nm2).slice(-2)+'</td>';}
       else h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center;color:#4a5a72;font-size:.55rem">'+('0'+nm2).slice(-2)+'</td>';
     }
     h+='<td style="border:1px dashed #2d3a52;padding:2px 3px;text-align:center"><span class="ball" style="display:inline-block;width:26px;height:26px;line-height:26px;border-radius:50%;color:#fff;font-weight:700;font-size:11px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4);background:'+WAVE[teD.s]+'">'+teD.s+'</span></td></tr>';
