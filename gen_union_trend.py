@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """并集 rot8+温号1 命中趋势表 (自210期累积) — 样式同线上网站趋势表
-每期21位码格: 灰色=未命中 · 彩色球=命中(波色) · 末列=特码 · 汇总行 + 下期预测行
+每期22位码格: 灰色=未命中 · 彩色球=命中(波色) · 末列=特码 · 汇总行 + 下期预测行
 """
 import sys
 sys.path.insert(0, '/Users/xiejinyu')
@@ -15,7 +15,8 @@ WAVE_C = {'red':'#dc2626','blue':'#2563eb','green':'#059669'}
 draws = m4.load()
 idx = {int(d['i'][-3:]): k for k, d in enumerate(draws)}
 
-START, END = 210, 236  # 当期号体系连续段 (数据至236期)
+START = 210
+END = int(draws[-1]['i'][-3:])  # 动态: 数据至最新期
 rows = []  # (期号, 特码, 21码列表, 是否命中)
 for iss in range(START, END + 1):
     if iss not in idx:
@@ -29,7 +30,7 @@ for iss in range(START, END + 1):
 n = len(rows)
 ok = sum(1 for r in rows if r[3])
 # 汇总: 每位命中次数
-pos_hits = [0] * 21
+pos_hits = [0] * 22  # 并集现为22码(热含4位)
 for iss, s, model, hit in rows:
     for p, num in enumerate(model):
         if num == s: pos_hits[p] += 1
@@ -53,7 +54,7 @@ for iss, s, model, hit in rows:
 
 # 汇总行: 每位累计命中
 sum_cells = ['<td class="iss">累计</td>']
-for p in range(21):
+for p in range(22):
     v = pos_hits[p]
     hot = ' hot' if v >= 5 else ''
     sum_cells.append(f'<td class="sum{hot}">{v}</td>')
@@ -72,11 +73,11 @@ pred_cells.append('<td class="pred">?</td>')
 pred_tr = '<tr class="pred">' + ''.join(pred_cells) + '</tr>'
 
 # 状态信号行已按纠错红线移除 (2026-08-24): 近5期池命中的"高/中/低"状态是码数混淆+2026后验, 已证伪
-# 策略 = 恒定池21码(rot8+温号1) + 内幕补位 = 22码, 均注, 无切换
+# 策略 = 恒定池22码(rot8热含4位+温号1) + 内幕补位, 均注, 无切换
 rec = rows[-5:]
 span = f"{rec[0][0]}-{rec[-1][0]}期"
 state_html = (f'<div class="state">📡 近5期({span})池命中 {sum(1 for r in rec if r[3])}/5 · '
-              f'<b>策略: 恒定池21码(rot8+温号1)+内幕补位=22码, 均注, 不切换</b>'
+              f'<b>策略: 恒定池22码(rot8热含4位+温号1)+内幕补位, 均注, 不切换</b>'
               f'（状态信号已证伪: 码数混淆+2026后验, 勿按状态加注）</div>')
 
 html = f'''<!doctype html>
@@ -113,8 +114,8 @@ tr.pred td.pred{{color:#e2e8f0;font-weight:700}}
 </head>
 <body>
 <h1>🔥 并集 rot8+温号1 命中趋势表</h1>
-<div class="sub">热1-3,7-10(频≥25,漏15-62) / 冷1-3+6+10-12(漏top12,奇偶轮转) / 重top5(频≥30,漏2-10) / 温1 · 自210期累积 · 滚动回测(仅历史数据)</div>
-<div class="rate">累计命中 <b>{ok}/{n}</b> = <b>{ok/n*100:.0f}%</b>（随机基线 {21/49*100:.0f}% · 期望 {ok/n*47-21:+.1f}/期）</div>
+<div class="sub">热1-4,7-10(频≥25,纯频次排序) / 冷1-4+6+8/10-12(漏top12,奇偶轮转) / 重top5(频≥30,漏2-11) / 温1 · 自210期累积 · 滚动回测(仅历史数据)</div>
+<div class="rate">累计命中 <b>{ok}/{n}</b> = <b>{ok/n*100:.0f}%</b>（随机基线 {22/49*100:.0f}% · 期望 {ok/n*47-22:+.1f}/期）</div>
 {state_html}
 <table>
 <tr><th>期号</th>{''.join(f'<th>{p+1}</th>' for p in range(21))}<th>特码</th></tr>
@@ -128,5 +129,5 @@ tr.pred td.pred{{color:#e2e8f0;font-weight:700}}
 out = '/Users/xiejinyu/macau-mark6/union-trend-rot8.html'
 open(out, 'w').write(html)
 print('已生成', out)
-print(f'累计 {ok}/{n} = {ok/n*100:.0f}%  期望 {ok/n*47-21:+.1f}/期')
+print(f'累计 {ok}/{n} = {ok/n*100:.0f}%  期望 {ok/n*47-22:+.1f}/期')
 print(f'{ISSUE}期预测: {" ".join("%02d"%x for x in pred)}')

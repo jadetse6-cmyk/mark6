@@ -31,8 +31,10 @@ def build_union(ti, rot=True, warm_n=1):
         mm = tlt - 1 - sl.get(n, tlt)
         if sc.get(n, 0) >= 25 and _lo <= mm <= _hi:
             omC.append([n, sc.get(n, 0), mm])
-    # 2026-08-24 排序键优化(2026口径全窗口验证): 热车道按 频×漏 排序(优先"高频中近期更久未出")
-    omC.sort(key=lambda x: -(x[1] * x[2]))
+    # 2026-08-31 排序键修正(210-242扫描): 热车道改纯频次排序 —
+    #   频×漏把"高频中漏"码(242期09: 频40×漏17=680)压到21位, 纯频次下09排第4;
+    #   双轨思想: 首页遗漏策略(纯频次)+综合热号(频×漏)并存, 并集热车道用纯频次补中漏形态
+    omC.sort(key=lambda x: -x[1])
     coldC = sorted([[n, tlt - 1 - sl.get(n, tlt)] for n in range(1, 50)], key=lambda x: -x[1])
     repC = []
     for n in range(1, 50):
@@ -55,7 +57,7 @@ def build_union(ti, rot=True, warm_n=1):
                 nn = lst[q - 1][0]
                 if nn not in used:
                     used.add(nn); uni.append(nn)
-    addL(omC[:12], [1, 2, 3, 7, 8, 9, 10])
+    addL(omC[:12], [1, 2, 3, 4, 7, 8, 9, 10])  # 2026-08-31 含4位(纯频次下第4位=高频中漏码: 242期09)
     # 2026-08-24 含4位变体(用户确认采用): 冷车道取位跳过漏榜第4/5位=结构性盲区(236期11号漏116第4位全灭),
     #   含4位(奇偶都8位, 21码总量不变) — 2026口径全窗口+验证段+236期11号救回, 代价2025年/1-30段略深负
     sel = [1, 2, 3, 4, 6, 8, 10, 12] if (rot and ti % 2 == 0) else [1, 2, 3, 4, 6, 10, 11, 12]
