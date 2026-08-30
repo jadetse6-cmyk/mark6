@@ -17,7 +17,7 @@ with open(DATA, encoding='utf-8-sig') as f:
 draws.sort(key=lambda d: d['i'])
 
 
-def build_union(ti, rot=True, warm_n=2):  # 2026-08-31 温号1→2: 210-242扫描27/33=82% +16.5
+def build_union(ti, rot=True, warm_n=1):  # 2026-08-31 温号定1: 温0/1/2扫描=16.0/16.5/15.5, 温1最优(温2多花1码零命中)
     """返回 (uni20, warm3) — 与JS buildUnion 完全一致"""
     ttD = draws[:ti]
     tlt = len(ttD)

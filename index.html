@@ -462,7 +462,7 @@ function buildUnion(ti){
   addL(coldC.slice(0,12),sel);
   addL(repC.slice(0,5),[1,2,3,4,5]);
   for(var q=0;q<omC.length&&uni.length<20;q++){if(!used[omC[q].n]){used[omC[q].n]=1;uni.push(omC[q].n);}}
-  var warm=[];for(var q=0;q<warmC.length&&warm.length<2;q++){if(!used[warmC[q].n]){warm.push(warmC[q].n);}} // 温2(2026-08-31)
+  var warm=[];for(var q=0;q<warmC.length&&warm.length<1;q++){if(!used[warmC[q].n]){warm.push(warmC[q].n);}} // 温1(2026-08-31)
   return {uni:uni,warm:warm};
 }
 // 短遗漏重复5个 (漏2-10, 频>=30) — 近50期贡献7次命中
