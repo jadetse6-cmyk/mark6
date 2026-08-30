@@ -458,7 +458,7 @@ function buildUnion(ti){
   var uni=[],used={};
   function addL(list,idxs){for(var q=0;q<idxs.length;q++){var nn=list[idxs[q]-1];if(nn!=null&&!used[nn.n]){used[nn.n]=1;uni.push(nn.n);}}}
   addL(omC.slice(0,12),[1,2,3,4,7,8,9,10]); // 2026-08-31 含4位(高频中漏码)
-  var sel=(ti%2==0)?[1,2,3,6,8,10,11,12]:[1,2,3,6,10,11,12];
+  var sel=(ti%2==0)?[1,2,3,4,6,8,10,12]:[1,2,3,4,6,10,11,12]; // 含4位(2026-08-31同步backtest_new)
   addL(coldC.slice(0,12),sel);
   addL(repC.slice(0,5),[1,2,3,4,5]);
   for(var q=0;q<omC.length&&uni.length<20;q++){if(!used[omC[q].n]){used[omC[q].n]=1;uni.push(omC[q].n);}}
