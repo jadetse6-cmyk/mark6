@@ -680,7 +680,7 @@ document.getElementById('trendOM').innerHTML=buildTrendTable('OM');
 // ═══ 并集 rot8+温号1 命中趋势 (自210期累积, 21位) ═══
 function buildTrendV6(){
   var tstart=T;
-  for(var i=0;i<T;i++){if(DRAWS[i].i=='2026210'){tstart=i;break;}}
+  for(var i=0;i<T;i++){if(DRAWS[i].i=='2026205'){tstart=i;break;}}  // 205起(2026-08-31用户要求)
   var colTpl='40px '+Array(21).fill('minmax(0,1fr)').join(' ')+' 36px';
   var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div class="trend-inner" style="min-width:740px;font-size:.6rem;text-align:center">';
   // 表头
