@@ -1,0 +1,591 @@
+#!/usr/bin/env python3
+"""三层交集取数 (2026-08-25 用户新思路) — 本地-only, 绝不上线
+
+三层结构 (每层内部先投票, 层与层之间取交集):
+  生肖层: 内幕资料有区分度系统(<10肖, 含汉奸9肖) → 各肖得票 → >67%白名单系统数留下
+  号码层: 号码级系统(精选三头/单尾/单双/头数中特必中/规律大小/三行中特) → 各码得票 → >67%白名单系统数留下 (2026-08-26 阈值扫描: 60%=17/17保持且均码19.1期望+27.9为甜点; 70%起漏233期)
+  模型层: 冷热遗漏四车道 热前13 ∪ 冷前12 ∪ 重全 ∪ 温全 (≈33码)
+
+回测 216-236(有完整资料16期): 16/16 = 100%, 均22.1码, 期望 +24.9/期
+     滚动最近10期(227-236): 10/10 = 100%, 均22.9码, 期望 +24.1/期
+
+关键教训(勿改):
+  · 模型层必须含重车道+温车道 — 只用热12+冷12 → 8/16=50% 期望+8.2 (砍掉的正是最有效的一段)
+  · 号码层只能用投票制或交集, 并集必然铺满49码(单双与单尾互补)
+  · 生肖层 50% 是下限, 不可上抬 — 236期猴6/11=54.5% 是历史最低, 60%线会杀掉它
+  · 圈肖不进主池的红线只针对"模型21码"口径; 本方案是三层平权交集, 不是过滤
+
+用法: python3 gen_three_layer.py
+"""
+import re, sys, os, shutil
+from collections import Counter
+sys.path.insert(0, '/Users/xiejinyu')
+import macau_model_4d as m4
+import backtest_full as bf
+
+SNAP_DIR = '/Users/xiejinyu/macau-mark6/资料快照'
+
+DATA_TXT = '/Users/xiejinyu/macau-mark6/咕噜圆预测资料全集.txt'
+Z = m4.ZODIAC
+ZS12 = '鼠牛虎兔龙蛇马羊猴鸡狗猪'
+HJ = {'汪精卫': set('猪狗鼠'), '陈公博': set('牛虎蛇'),
+      '周佛海': set('马兔羊'), '梁鸿志': set('龙鸡猴')}
+CN = {'零': 0, '〇': 0, '一': 1, '二': 2, '三': 3, '四': 4,
+      '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+
+head = lambda hs: {n for n in range(1, 50) if n // 10 in hs}
+tail = lambda ts: {n for n in range(1, 50) if n % 10 in ts}
+
+# 2026马年 五行→号码表 (用户提供, 49码全覆盖; 三行中特按此映射, 231-237验证7/7=100%)
+WXN = {'金': {4, 5, 12, 13, 26, 27, 34, 35, 42, 43},
+       '木': {8, 9, 16, 17, 24, 25, 38, 39, 46, 47},
+       '水': {1, 14, 15, 22, 23, 30, 31, 44, 45},
+       '火': {2, 3, 10, 11, 18, 19, 32, 33, 40, 41, 48, 49},
+       '土': {6, 7, 20, 21, 28, 29, 36, 37}}
+
+draws = m4.load()
+K = len(draws)
+LAST = int(draws[-1]['i'][-3:])
+ISSUE = LAST + 1
+idx = {int(d['i']): j for j, d in enumerate(draws)}   # 完整7位期号, 防跨年重号
+
+
+# ────────────────────────── 解析 ──────────────────────────
+def parse_zodiac(path=DATA_TXT):
+    """生肖层: {期: {系统: 生肖集合}} — 含汉奸9肖(枪毙=投其余9肖) + 绝杀三肖9肖(杀=投其余9肖)
+    多源冲突记录投票法(2026-08-27 用户确认): 绝杀三肖/天地中特多条并存, 每条独立计票;
+    琴棋书画多条值相同, 取一个(backtest_full 非空覆盖已实现)
+    path: 资料文件路径 — 回测用开奖前快照(防前视), 预测用当前文件"""
+    per = bf.parse_file(path)
+    for i in per:
+        per[i]['sys'].pop('天地中特', None)  # 重置, 下面按多源注入
+    for ln in open(path, encoding='utf-8'):
+        ln = ln.strip()
+        m = re.search(r'(\d{3})期枪毙①号汉奸【(.+?)】', ln)
+        if m and m.group(2) in HJ:  # 【更新中】等占位跳过(与琴棋书画同款修复)
+            i = int(m.group(1))
+            per.setdefault(i, {'sys': {}, 'excl': set()})
+            per[i]['sys']['汉奸9肖'] = set(ZS12) - HJ[m.group(2)]
+        # 绝杀三肖: 每条独立计票 (多源各发各的, 杀=投其余9肖; 历史单条35/38=92%)
+        for mm in re.finditer(r'(\d{3})期[：:]?\s*绝杀三肖【(.+?)】', ln):
+            i = int(mm.group(1))
+            zz = {c for c in mm.group(2) if c in ZS12}
+            if not zz:
+                continue
+            per.setdefault(i, {'sys': {}, 'excl': set()})
+            d2 = per[i]['sys']
+            key = '绝杀三肖9肖' if '绝杀三肖9肖' not in d2 else '绝杀三肖9肖' + str(1 + sum(1 for k in d2 if k.startswith('绝杀三肖')))
+            d2[key] = set(ZS12) - zz
+        # 天地中特/天地生肖: 每条独立计票 (地肖/天肖冲突并存)
+        for mm in re.finditer(r'(\d{3})期[：:]?\s*天地(?:中特|生肖)[〈【]*(天|地)肖', ln):
+            i = int(mm.group(1))
+            per.setdefault(i, {'sys': {}, 'excl': set()})
+            d2 = per[i]['sys']
+            key = '天地中特' if '天地中特' not in d2 else '天地中特' + str(1 + sum(1 for k in d2 if k.startswith('天地中特')))
+            d2[key] = set(bf.DEF[mm.group(2) + '肖'])
+    return per
+
+
+# 非内幕7类系统 (2026-08-27 用户授权采用, 策略: 并入号码层投票; 杀肖类88%<92%基线为负信号丢弃)
+B_CN = {'红': {1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46},
+        '蓝': {3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48},
+        '绿': {5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49}}
+
+# ══ 2026-08-28 真实段重建 (用户确认): 资料粉饰铁证后按234-240实盘段重建 ══
+# 粉饰证据: 历史段(220-233)特码肖票率平均+27.4pp超随机基线(粉饰), 真实段(234-240)-4.5pp正常
+# 系统白名单=真实段独立命中超基线10pp+者:
+#   生肖层留: 二国中特86% 左右二肖86%(8肖基线67%) + 红肖71%观察
+#   号码层留: 三行中特②100%(7/7) 三行中特86% 精选三头86% 单尾86% 非内幕·波色86% + 大小/头数观察
+#   全弃: 绝杀三肖×2 汉奸 琴棋书画 笔墨纸砚 东南西北 天地中特 文武 家禽 五肖(≤基线)
+#         头数必中 非内幕·尾数/单双 规律大小(0/5!) 单双(86%但基线80%区分度低)
+ZW_LIST = ['二国中特', '左右二肖', '红肖']
+NW_LIST = ['三行中特②', '三行中特', '精选三头', '单尾', '非内幕·波色', '非内幕·大小', '非内幕·头数']
+
+
+def parse_number(path=DATA_TXT):
+    """号码层: {期: {系统: 号码集合}} ; path=资料文件路径(回测用快照防前视)
+    含: 内幕6系统 + 非内幕7类(尾数/波色/单双/大小/头数/肖类/五行, 排除型投其余码)
+    ⚠️ 2026-08-28 铁证: 文孙爱打飞机=对冲双发假数据(自标92.9%实际53.5%) → 文孙区块全部剔除;
+       羊羊保留(用户未控诉)。实测三口径(无/羊羊/文孙+羊羊)回测完全等价 — 非内幕宽系统加票不加区分度"""
+    NS = {}
+    pend = None
+    zone = ''
+    person = ''
+    for ln in (l.strip() for l in open(path, encoding='utf-8')):
+        if ln.startswith('◆◆◆'):
+            person = '文孙' if '文孙' in ln else ('羊羊' if '羊羊' in ln else '咕噜圆')
+            continue
+        if re.match(r'^── .+ ──$', ln):
+            zone = ln[3:-3]
+            continue
+        m = re.match(r'^(\d{3})期[：:;；]?\s*(.*)$', ln)
+        i = int(m.group(1)) if m else None
+        rest = re.split(r'开[:：]', m.group(2))[0] if m else ''
+        if i and zone == '非内幕' and person == '文孙':
+            continue  # 文孙假数据剔除
+        if i and zone == '非内幕':
+            E = NS.setdefault(i, {})
+            # 尾数类 (免费4尾/霸气七尾/八尾中特/四尾八码/绝杀三尾)
+            mm = re.search(r'(?:免费4尾|霸气七尾|八尾中特|四尾八码|绝杀三尾)[】【\[（(]?([\d.·零一二三四五六七八九〇]+)', rest)
+            if '尾' in rest and mm:
+                ds = {int(c) for c in mm.group(1) if c.isdigit()} | {CN[c] for c in mm.group(1) if c in CN}
+                if ds:
+                    ns = {n for n in range(1, 50) if n % 10 in ds}
+                    E['非内幕·尾数'] = set(range(1, 50)) - ns if '绝杀' in rest else ns
+                continue
+            # 波色类
+            mm = re.search(r'波[】\]]?【?([红蓝绿]{1,2})', rest)
+            if '波' in rest and mm:
+                zs = set()
+                for z in mm.group(1):
+                    if z in B_CN:
+                        zs |= B_CN[z]
+                if zs:
+                    E['非内幕·波色'] = set(range(1, 50)) - zs if ('绝杀' in rest or '杀半波' in rest) else zs
+                continue
+            # 单双类
+            mm = re.search(r'(?:最稳单双|单双中特|三个半单双|绝杀半单双|合单合双|单笔双笔)[】【\[（(]?([单双合笔]*)', rest)
+            if ('单双' in rest or '单笔' in rest or '合单' in rest) and mm:
+                w = mm.group(1)
+                if '双' in w:
+                    ns = {n for n in range(1, 50) if n % 2 == 0}
+                    E['非内幕·单双'] = set(range(1, 50)) - ns if '绝杀' in rest else ns
+                elif '单' in w and '双' not in w:
+                    ns = {n for n in range(1, 50) if n % 2 == 1}
+                    E['非内幕·单双'] = set(range(1, 50)) - ns if '绝杀' in rest else ns
+                continue
+            # 大小类
+            mm = re.search(r'(?:大小中特|尾大尾小)[】【\[（(]?([大小]{1,2})', rest)
+            if ('大小中特' in rest or '尾大尾小' in rest) and mm:
+                w = mm.group(1)
+                if w.startswith('大'):
+                    E['非内幕·大小'] = set(range(25, 50))
+                elif w.startswith('小'):
+                    E['非内幕·大小'] = set(range(1, 25))
+                continue
+            # 头数类
+            if '头' in rest and ('头必中' in rest or '头中特' in rest or '绝杀' in rest):
+                hs = {int(x) for x in re.findall(r'(\d)头', rest)}
+                if hs:
+                    ns = {n for n in range(1, 50) if n // 10 in hs}
+                    E['非内幕·头数'] = set(range(1, 50)) - ns if '绝杀' in rest else ns
+                continue
+            # 肖类 (九肖/前后中特/家禽野兽/有无生肖/肥瘦生肖/肉草菜肖/四季生肖)
+            mm = re.search(r'(?:九肖|前后中特|家禽野兽|有无生肖|肥瘦生肖|肉草菜肖|四季生肖)[】【\[（(]?([鼠牛虎兔龙蛇马羊猴鸡狗猪]{1,12})', rest)
+            if mm and any(c in ZS12 for c in mm.group(1)):
+                zs = {c for c in mm.group(1) if c in ZS12}
+                if zs:
+                    ns = {n for n in range(1, 50) if Z[n] in zs}
+                    E['非内幕·肖类'] = set(range(1, 50)) - ns if '无' in rest else ns
+                continue
+            # 五行类 (绝杀一行/三行中特)
+            mm = re.search(r'(?:绝杀一行|三行中特)[】【\[（(]?([金木水火土]{1,3})', rest)
+            if mm and any(c in WXN for c in mm.group(1)):
+                ns = set()
+                for x in mm.group(1):
+                    if x in WXN:
+                        ns |= WXN[x]
+                if ns:
+                    E['非内幕·五行'] = set(range(1, 50)) - ns if '绝杀' in rest else ns
+                continue
+            continue
+        if i and '精选三头' in ln:
+            hs = {int(x) for x in re.findall(r'(\d)头', ln)}
+            if hs:
+                NS.setdefault(i, {})['精选三头'] = head(hs)
+        if i:
+            mm = re.search(r'单【([\d.]+)】双【([\d.]+)】', ln)
+            if mm:
+                ts = {int(x) for x in (mm.group(1) + '.' + mm.group(2)).split('.') if x}
+                NS.setdefault(i, {})['单双'] = tail(ts)
+            mm = re.search(r'单尾[（(]([^）)]+)[）)]双尾[（(]([^）)]+)[）)]', ln)
+            if mm:
+                ts = {CN[c] for c in mm.group(1) + mm.group(2) if c in CN}
+                NS.setdefault(i, {})['单尾'] = tail(ts)
+            if '规律大小' in ln:
+                mm = re.search(r'【(.+?)】', ln)
+                if mm:
+                    s = set()
+                    if '大数' in mm.group(1):
+                        s |= set(range(25, 50))
+                    if '小数' in mm.group(1):
+                        s |= set(range(1, 25))
+                    if s:
+                        NS.setdefault(i, {})['规律大小'] = s
+            if '头数中特' in ln:
+                pend = i
+        if pend and '必中' in ln:
+            mm = re.search(r'必中【([\d.]+)头】', ln)
+            if mm:
+                NS.setdefault(pend, {})['头数中特必中'] = head(
+                    {int(x) for x in mm.group(1).split('.') if x})
+                pend = None
+        if i:
+            # 三行中特: 【】与『』两种格式都收, 多条并存各自独立计票 (2026-08-26 用户确认: 冲突记录投票法)
+            for mm in re.finditer(r'三行中特【(.+?)】|三行中特『(.+?)』', ln):
+                xs = mm.group(1) or mm.group(2)
+                s = set()
+                for x in xs:
+                    if x in WXN:
+                        s |= WXN[x]
+                if not s:
+                    continue
+                d2 = NS.setdefault(i, {})
+                key = '三行中特' if '三行中特' not in d2 else f'三行中特{chr(0x2460 + sum(1 for k in d2 if k.startswith("三行中特")))}'
+                d2[key] = s
+    return NS
+
+
+# ────────────────────────── 三层 ──────────────────────────
+def lanes(t):
+    """模型层四车道 (只用 draws[:t], 无前视)"""
+    sc = {}; sl = {}
+    for j, d in enumerate(draws[:t]):
+        s = d['s']; sc[s] = sc.get(s, 0) + 1; sl[s] = j
+    mi = lambda n: t - 1 - sl.get(n, t)
+    msv = sorted(mi(n) for n in range(1, 50))
+    lo, hi = msv[12], msv[36]
+    # 热12 (2026-08-31 三行∪兜底后回退13→12): 0.67线下重扫12优于13(17.4码 vs 17.6码)
+    H = [n for n, _, _ in sorted(
+        [[n, sc.get(n, 0), mi(n)] for n in range(1, 50)
+         if sc.get(n, 0) >= 25 and lo <= mi(n) <= hi],
+        key=lambda x: -(x[1] * x[2]))][:12]
+    C = [n for n, _ in sorted([[n, mi(n)] for n in range(1, 50)],
+                              key=lambda x: -x[1])][:12]
+    # 重漏上限11 (2026-08-27 用户确认): 17漏11频34, 门槛10漏掉238期; 11救回
+    R = [n for n, _ in sorted(
+        [[n, sc.get(n, 0)] for n in range(1, 50)
+         if 2 <= mi(n) <= 11 and sc.get(n, 0) >= 30], key=lambda x: -x[1])]
+    W = [n for n, _, _ in sorted(
+        [[n, sc.get(n, 0), mi(n)] for n in range(1, 50)
+         if 25 <= sc.get(n, 0) <= 32 and 20 <= mi(n) <= 50],
+        key=lambda x: -(x[1] * x[2]))]
+    return H, C, R, W, sc, mi
+
+
+def zodiac_layer(per, iss, thr=0.67):
+    """→ (圈内肖集合, 各肖票数, 有效系统数) ; 资料不足返回 None
+    2026-08-28 真实段重建: 系统白名单(ZW_LIST);
+      线0.67 (2026-08-31 三行∪兜底后重扫): 0.67/0.67/热12/重11 → 9/9=100% 均17.4码 +29.6/期,
+      三行交集兜底后低共识码可放心砍; 历史段(220-233)为粉饰段, 不再作为校准依据"""
+    vz = {a: b for a, b in per.get(iss, {}).get('sys', {}).items()
+          if a in ZW_LIST and 0 < len(b) < 10}
+    if len(vz) < 2:
+        return None
+    zc = Counter()
+    for v in vz.values():
+        zc.update(v)
+    for z in ZS12:
+        zc.setdefault(z, 0)
+    N = len(vz)
+    return {z for z in ZS12 if zc[z] >= N * thr}, zc, N
+
+
+def number_layer(NS, iss, thr=0.67):
+    """→ (圈内码集合, 各码票数, 系统数) ; 资料不足返回 None
+    2026-08-28 真实段重建: 系统白名单(NW_LIST);
+    线0.67 (2026-08-31 三行∪兜底后重扫最优, 见zodiac_layer)"""
+    nd = {a: b for a, b in NS.get(iss, {}).items() if a in NW_LIST}
+    if len(nd) < 3:
+        return None
+    nv = Counter()
+    for s in nd.values():
+        nv.update(s)
+    N = len(nd)
+    return {n for n in range(1, 50) if nv[n] >= N * thr}, nv, N
+
+
+def three_layer(per, NS, iss, t):
+    zl = zodiac_layer(per, iss); nl = number_layer(NS, iss)
+    if zl is None or nl is None:
+        return None
+    CI, zc, zn = zl
+    NCI, nv, nn = nl
+    H, C, R, W, sc, mi = lanes(t)
+    ML = set(H) | set(C) | set(R) | set(W)
+    ZL = {n for n in range(1, 50) if Z[n] in CI}
+    return dict(final=sorted(ZL & NCI & ML), CI=CI, zc=zc, zn=zn, nv=nv, nn=nn,
+                ZL=ZL, NL=NCI, ML=ML, H=H, C=C, R=R, W=W, sc=sc, mi=mi)
+
+
+def hot_rec(t, z):
+    """生肖特码热度推荐 (复刻网站 scoreSpecComp, 只用 draws[:t]):
+    候选=频26-48且漏5-120, 打分=遗漏分+频次分+平码分+尾数分(尾0/2=25,尾3=10)+生肖分(龙狗+15),
+    前10名封顶60分, 其余=频率×0.3+遗漏×0.5; 返回该肖评分最高的码"""
+    sc = {}; last = {}; f30 = {}
+    for j, dd in enumerate(draws[:t]):
+        s = dd['s']; sc[s] = sc.get(s, 0) + 1; last[s] = j
+        if j >= t - 30:
+            for x in (dd.get('f') or []):
+                if 1 <= x <= 49:
+                    f30[x] = f30.get(x, 0) + 1
+    miss = {n: (t - 1 - last[n] if last[n] >= 0 else t) for n in range(1, 50)}
+    mx1 = max(sc.values()); mx2 = max(miss.values())
+    cd = []
+    for n in range(1, 50):
+        f, m2 = sc.get(n, 0), miss[n]
+        if not (26 <= f <= 48) or not (5 <= m2 <= 120):
+            continue
+        tt = n % 10
+        cd.append((n, 20 - abs(m2 - 50) / 3
+                   + (20 if 31 <= f <= 35 else 15 if 36 <= f <= 40 else 8)
+                   + min(f30.get(n, 0), 8) / 8 * 10
+                   + (25 if tt in (0, 2) else 10 if tt == 3 else 0)
+                   + (15 if Z[n] in ('龙', '狗') else 0)))
+    cd.sort(key=lambda x: -x[1])
+    t10 = {n for n, _ in cd[:10]}
+    tot = {n: (60 if n in t10 else sc[n] / mx1 * 100 * 0.3 + miss[n] / mx2 * 100 * 0.5)
+           for n in range(1, 50)}
+    rank = sorted(range(1, 50), key=lambda n: -tot[n])
+    return next(n for n in rank if Z[n] == z)
+
+
+def sx_union(NS, iss):
+    """三行中特交集码 (2026-08-30 用户确认纳入): 白名单内两条三行中特都覆盖的码
+    历史: 交集均16.1码 8/9=89% 超基线+56pp — 当前最强单信号;
+    与三层并集后真实段9/9=100% (补上235特32/242特09两个三层漏洞)"""
+    xs = [v for k, v in NS.get(iss, {}).items() if k.startswith('三行')]
+    if len(xs) < 2:
+        return set()
+    return set(xs[0]) & set(xs[1])
+
+
+def bare_zodiac(cur):
+    """裸肖 = 圈内(≥50%线)但三层交集0码的肖 (2026-08-26 用户规则: 裸肖按生肖特码热度补1码)
+    历史回测: 222期马→13 / 237期蛇+猪→02+20, 补位0直接命中 — 是防全灭保险, 不是期望增益"""
+    F = set(cur['final'])
+    return [z for z in ZS12 if cur['zc'][z] >= cur['zn'] * 0.5
+            and not any(Z[n] == z for n in F)]
+
+
+# ────────────────────────── 主流程 (仅直接运行时执行; import 时不跑) ──────────────────────────
+def main():
+    per = parse_zodiac()
+    NS = parse_number()
+    cur = three_layer(per, NS, ISSUE, K)
+    if cur is None:
+        print(f'⚠️  {ISSUE}期资料不足 (生肖层需≥2系统, 号码层需≥3系统), 无法取数')
+        return
+    # 快照: 只在"资料齐全能出码"时存 (修复: 资料不足时不存, 防过时空快照)
+    os.makedirs(SNAP_DIR, exist_ok=True)
+    snap = f'{SNAP_DIR}/快照-{ISSUE}期.txt'
+    if not os.path.exists(snap):
+        shutil.copy(DATA_TXT, snap)
+        print(f'已存资料快照: 快照-{ISSUE}期.txt')
+    run(per, NS, cur)
+
+
+def run(per, NS, cur):
+
+    F = cur['final']; zc = cur['zc']; nv = cur['nv']
+    H, C, R, W = cur['H'], cur['C'], cur['R'], cur['W']
+    mi, sc = cur['mi'], cur['sc']
+    lane = lambda n: ''.join(k for k, v in (('热', H), ('冷', C), ('重', R), ('温', W)) if n in v)
+
+    # 外卡🔥升席门槛: 单配置全窗组合回测 (234~LAST, 快照优先) → {tot,hit,cod均码,exp,miss}
+    # 2026-09-05 双向治理: 临时替换白名单跑对比, finally 恢复, 不写盘不改下期行为
+    def auto_bt(ZW, NW):
+        global ZW_LIST, NW_LIST
+        old = ZW_LIST, NW_LIST
+        ZW_LIST, NW_LIST = ZW, NW
+        try:
+            tot = hit = cod = 0
+            miss = []
+            for i in range(234, LAST + 1):
+                f = 2026000 + i
+                if f not in idx:
+                    continue
+                snap = f'{SNAP_DIR}/快照-{i}期.txt'
+                if os.path.exists(snap):
+                    per_i, NS_i = parse_zodiac(snap), parse_number(snap)
+                else:
+                    per_i, NS_i = per, NS
+                r = three_layer(per_i, NS_i, i, idx[f])
+                if r is None:
+                    continue
+                s = draws[idx[f]]['s']
+                fills = [hot_rec(idx[f], z) for z in bare_zodiac(r)]
+                ok = s in r['final'] or s in fills or s in sx_union(NS_i, i)
+                tot += 1; hit += ok
+                cod += len(r['final']) + len(fills) + len(sx_union(NS_i, i))
+                if not ok:
+                    miss.append(i)
+            exp = hit / tot * 47 - cod / tot if tot else 0.0
+            return dict(tot=tot, hit=hit, cod=cod / tot if tot else 0.0, exp=exp, miss=miss)
+        finally:
+            ZW_LIST, NW_LIST = old
+
+    print(f'══════ {ISSUE}期 三层交集取数 (数据至{LAST}期) ══════\n')
+    print(f'生肖层 {cur["zn"]}系统(白名单), 线≥{cur["zn"]*0.67:.1f}票 → 圈内{len(cur["CI"])}肖 '
+          f'{"".join(z for z in ZS12 if z in cur["CI"])}  圈外 '
+          f'{"".join(z for z in ZS12 if z not in cur["CI"]) or "无"}')
+    print(f'       票数: ' + ' '.join(f'{z}{c}' for z, c in zc.most_common()))
+    print(f'号码层 {cur["nn"]}系统(白名单), 线≥{cur["nn"]*0.67:.1f}票 → {len(cur["NL"])}码')
+    print(f'模型层 热{len(H)}∪冷{len(C)}∪重{len(R)}∪温{len(W)} = {len(cur["ML"])}码')
+    print(f'\n★★ 三层交集 {len(F)}码')
+    print('   ' + ' '.join(f'{n:02d}' for n in F))
+
+    # 三行中特交集码纳入 (2026-08-30 用户确认): 两条三行都覆盖的码并入最终池
+    sx = sx_union(NS, ISSUE)
+    if sx:
+        print(f'   三行交集纳入: {len(sx)}码')
+        F = sorted(set(F) | sx)
+    # 裸肖补位 (用户规则: 圈内但0码的肖, 按生肖特码热度补1)
+    fills = []
+    for z in bare_zodiac(cur):
+        rec = hot_rec(K, z)
+        fills.append((z, rec))
+    if fills:
+        for z, n in fills:
+            print(f'   补位: 裸肖{z}{cur["zc"][z]}票 → 生肖特码热度推荐 {n:02d}')
+        F = sorted(set(F) | {n for _, n in fills})
+
+    print(f'\n{"码":>5}{"肖":>4}{"肖票":>6}{"码票":>7}{"车道":>7}{"漏":>6}{"频":>5}')
+    for n in F:
+        print(f'  {n:02d}  {Z[n]:>3}{zc[Z[n]]:>5}票{nv[n]:>5}/{cur["nn"]}'
+              f'{lane(n):>7}{mi(n):>6}{sc.get(n,0):>5}')
+
+    zs = sorted({Z[n] for n in F}, key=lambda z: -zc[z])
+    print(f'\n覆盖{len(zs)}肖: ' + '  '.join(
+        f'{z}{zc[z]}:' + ','.join(f'{n:02d}' for n in F if Z[n] == z) for z in zs))
+    nomark = [z for z in sorted(cur['CI'], key=lambda z: -zc[z]) if z not in zs]
+    print(f'圈内无码肖: ' + (' '.join(f'{z}{zc[z]}票' for z in nomark) or '无'))
+    full = [n for n in F if nv[n] == cur['nn']]
+    print(f'码票满分({cur["nn"]}/{cur["nn"]}): ' + (' '.join(f'{n:02d}' for n in full) or '无'))
+    top = max(zs, key=lambda z: zc[z]) if zs else None
+    if top:
+        dbl = [n for n in F if Z[n] == top and nv[n] == cur['nn']]
+        print(f'双满贯(最高票肖{top}{zc[top]}票 ∩ 码票满分): ' +
+              (' '.join(f'{n:02d}' for n in dbl) or '无'))
+
+    # ── 滚动回测 ──
+    print(f'\n══════ 滚动回测 (216~{LAST}期) ══════')
+    print(f'{"期":>5}{"特码":>6}{"肖":>4}{"肖票":>6}{"码票":>6}{"车道":>6}{"码数":>6}  结果')
+    tot = hit = cod = 0
+    rows = []
+    seat_log = []
+    for i in range(216, LAST + 1):
+        f = 2026000 + i
+        if f not in idx:
+            continue
+        # 前视防护: 若该期预测时刻有资料快照, 用快照(开奖前版本)回测
+        snap = f'{SNAP_DIR}/快照-{i}期.txt'
+        if os.path.exists(snap):
+            per_i, NS_i = parse_zodiac(snap), parse_number(snap)
+        else:
+            per_i, NS_i = per, NS
+        r = three_layer(per_i, NS_i, i, idx[f])
+        if r is None:
+            continue
+        s = draws[idx[f]]['s']
+        fills = [hot_rec(idx[f], z) for z in bare_zodiac(r)]
+        ok = s in r['final'] or s in fills or s in sx_union(NS_i, i)
+        ln_ = ''.join(k for k, v in (('热', r['H']), ('冷', r['C']),
+                                     ('重', r['R']), ('温', r['W'])) if s in v) or '-'
+        tot += 1; hit += ok; cod += len(r['final']) + len(fills) + len(sx_union(NS_i, i))
+        rows.append((i, s, ok))
+        # 席位健康采集: 全量采集(白名单+外卡), 层判定仍用各自过滤器, 显示时再分
+        vz = {k: v for k, v in per_i.get(i, {}).get('sys', {}).items() if 0 < len(v) < 10}
+        nd = dict(NS_i.get(i, {}))
+        seat_log.append((i, s, vz, nd))
+        print(f'{i:>5}{s:>6}{Z[s]:>4}{r["zc"][Z[s]]:>5}票{r["nv"][s]:>4}/{r["nn"]}'
+              f'{ln_:>6}{len(r["final"]):>6}  {"✅" if ok else "❌"}')
+    if tot:
+        print(f'\n合计 {hit}/{tot} = {hit/tot*100:.0f}%   均{cod/tot:.1f}码   '
+              f'随机基线{cod/tot/49*100:.0f}%   期望 {hit/tot*47-cod/tot:+.1f}/期')
+        w10 = rows[-10:]
+        h10 = sum(1 for r in w10 if r[2])
+        print(f'近10期 {h10}/{len(w10)} = {h10/len(w10)*100:.0f}%')
+
+    # ── 席位健康 + 外卡观察 + 双向治理 (2026-09-05 用户规则) ──
+    if rows:
+        streak = 0
+        for _, _, ok in reversed(rows):
+            if not ok:
+                streak += 1
+            else:
+                break
+        if streak >= 3:
+            print(f'\n🔴 尾部连漏{streak}期 → 熔断: 白名单冻结停码, 交用户拍板')
+        elif streak >= 2:
+            print(f'\n🟠 尾部连漏{streak}期 → 治理红线: 建议全窗组合重扫, 当日不加注')
+
+    def seat_stat(kind, k, win):
+        """→ (n, h, bl率) 或 None; 与层判定同口径 (生肖按Z[s], 号码按s)"""
+        idxset, base = (2, 12) if kind == '生肖' else (3, 49)
+        present = [d[idxset].get(k) for d in win]
+        got = [v for v in present if v]
+        n = len(got)
+        if n < 3:
+            return None
+        h = sum(1 for d, v in zip(win, present) if v
+                and (Z[d[1]] if kind == '生肖' else d[1]) in v)
+        return n, h, sum(len(v) for v in got) / n / base * 100
+
+    if seat_log:
+        win = seat_log[-10:]
+        wl, outer = [], set()
+        for d in win:
+            for k in d[2]:
+                if k not in ZW_LIST:
+                    outer.add(('生肖', k))
+            for k in d[3]:
+                if k not in NW_LIST:
+                    outer.add(('号码', k))
+        for kind, klist in (('生肖', ZW_LIST), ('号码', NW_LIST)):
+            for k in klist:
+                r = seat_stat(kind, k, win)
+                if r:
+                    n, h, bl = r
+                    rate = h / n * 100
+                    wl.append(f'  {kind}·{k:<11}{h:>2}/{n:<2} = {rate:3.0f}% (基线{bl:.0f}%)'
+                              + ('  ⚠️低于基线' if rate < bl - 5 else ''))
+        if wl:
+            print('\n白名单健康 (近10期, 快照口径优先; 基线=席位规模随机概率)')
+            print('\n'.join(wl))
+        can = []
+        for kind, k in outer:
+            r = seat_stat(kind, k, win)
+            if r:
+                n, h, bl = r
+                if n >= 6:
+                    can.append((n, h, bl, kind, k))
+        if can:
+            can.sort(key=lambda c: -(c[1] / c[0] * 100 - c[2]))
+            print('\n外卡观察 (白名单外席位近10期; 🔥=率≥基线+15pp → 升席候选)')
+            hot = []
+            for n, h, bl, kind, k in can[:6]:
+                dlt = h / n * 100 - bl
+                mark = '  🔥升席候选' if dlt >= 15 else ''
+                print(f'  {kind}·{k:<11}{h:>2}/{n:<2} = {h/n*100:3.0f}% (基线{bl:.0f}%)'
+                      f'{mark}  ({dlt:+.0f}pp)')
+                if dlt >= 15:
+                    hot.append((kind, k))
+            if hot:
+                # 🔥 自动全窗组合回测 (升席门槛=组合≥现状; 入席拍板权在用户)
+                cur_ZW, cur_NW = list(ZW_LIST), list(NW_LIST)
+                base = auto_bt(cur_ZW, cur_NW)
+                print('\n🔥 升席全窗回测 (234~LAST, 快照口径):')
+                for kind, k in hot:
+                    ZW2 = cur_ZW + [k] if kind == '生肖' else cur_ZW
+                    NW2 = cur_NW + [k] if kind == '号码' else cur_NW
+                    t2 = auto_bt(ZW2, NW2)
+                    better = (t2['hit'] > base['hit']) or (
+                        t2['hit'] == base['hit'] and t2['exp'] >= base['exp'])
+                    v = '✅ 组合达标, 可入席 → 拍板: 用户' if better else '❌ 组合不达标, 不入'
+                    print(f'  {kind}·{k}: 现状 {base["hit"]}/{base["tot"]} '
+                          f'{base["cod"]:.1f}码 {base["exp"]:+.1f}/期 漏{base["miss"]}')
+                    print(f'        加席 {t2["hit"]}/{t2["tot"]} {t2["cod"]:.1f}码 '
+                          f'{t2["exp"]:+.1f}/期 漏{t2["miss"]}  {v}')
+
+    out = f'/Users/xiejinyu/macau-mark6/local-{ISSUE}-three-layer.txt'
+    with open(out, 'w', encoding='utf-8') as fh:
+        fh.write(f'{ISSUE}期 三层交集 {len(F)}码 (数据至{LAST}期)\n')
+        fh.write(' '.join(f'{n:02d}' for n in F) + '\n\n')
+        for z in zs:
+            fh.write(f'{z}{zc[z]}票: ' + ' '.join(f'{n:02d}' for n in F if Z[n] == z) + '\n')
+        fh.write(f'\n码票满分: ' + ' '.join(f'{n:02d}' for n in full) + '\n')
+    print(f'\n已写入 {out} (本地-only, 不上线)')
+
+if __name__ == "__main__":
+    main()
