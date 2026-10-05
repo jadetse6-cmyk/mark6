@@ -63,6 +63,9 @@ print(f'  网站: {len(draws)}期 → {nxt}期')
 "
 
 echo "4/4 推送..."
-git add . && git commit -m "Auto-update $(date +%Y-%m-%d)" && git push
+# 🔴 只 add 本脚本确实会改的两个文件 —— 绝不用 `git add .`:
+#    仓库与并行会话共享, 工作区随时有未入库文件(私料/临时脚本), 全量 add 会误扫。
+#    规则同 tools_auto_draw.py; macau_model.py 的产物在仓库外(~/macau_trend.html), 不受影响。
+git add -- macau_mark6_data.csv index.html && git commit -m "Auto-update $(date +%Y-%m-%d)" && git push
 
 echo "✅ 完成! 打开网站 Cmd+Shift+R"
