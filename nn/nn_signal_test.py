@@ -158,7 +158,15 @@ class AttnScorer(nn.Module):
 
 # ────────────────────────── 训练与评估 ──────────────────────────
 def run(arch, X, y_idx, mu, sd, tr, va, seed, shuffle, epochs=300, bs=64, lr=2e-3,
-        aux=None, aux_w=0.5):
+        aux=None, aux_w=0.5, log=None):
+    """训练一个成员。log: 可选 dict(2026-10-10 学习体检加) —— 逐 epoch 记
+    (ep, 训练损失, 验证损失, 验证 top14/top21 命中数) 到 log['curve'],
+    并回填 log['best_ep'](验证损失最低的 epoch)/log['stop_ep'](实跑 epoch 数)。
+
+    🔴 log 是【纯附加】: 不消费任何 RNG、不改一项计算 —— log=None 时与本函数
+       原版逐位一致(2026-10-10 用 nn8_aux_ext_20261007.npz 对拍验证过)。
+       登记路径(track_log.py)不传 log。
+    """
     torch.manual_seed(seed)
     np.random.seed(seed)
     nf = X.shape[2]
@@ -200,29 +208,71 @@ def run(arch, X, y_idx, mu, sd, tr, va, seed, shuffle, epochs=300, bs=64, lr=2e-
         return l
 
     best, best_state, bad = 1e9, None, 0
+    if log is not None:
+        log.setdefault('curve', [])
+    best_ep, stop_ep = -1, epochs
     for ep in range(epochs):
         model.train()
         perm = torch.randperm(len(Xtr))
+        trsum, trn = 0.0, 0
         for i in range(0, len(Xtr), bs):
             b = perm[i:i + bs]
             opt.zero_grad()
             loss = loss_of(model(Xtr[b]), ytr[b], None if Atr is None else Atr[b])
             loss.backward()
             opt.step()
+            trsum += loss.item() * len(b)
+            trn += len(b)
         model.eval()
         with torch.no_grad():
             # 早停只看主任务(特码) —— 这才是我们要预测的东西
-            vl = lossf(model(Xva), yva).item()
+            va_logits = model(Xva)
+            vl = lossf(va_logits, yva).item()
+            if log is not None:
+                od = va_logits.argsort(dim=1, descending=True)
+                h14 = int((od[:, :14] == yva[:, None]).any(1).sum())
+                h21 = int((od[:, :21] == yva[:, None]).any(1).sum())
+                log['curve'].append((ep, trsum / max(trn, 1), vl, h14, h21))
         if vl < best - 1e-5:
-            best, bad = vl, 0
+            best, bad, best_ep = vl, 0, ep
             best_state = {k: v.clone() for k, v in model.state_dict().items()}
         else:
             bad += 1
             if bad >= 25:
+                stop_ep = ep + 1
                 break
+    if log is not None:
+        log['best_ep'], log['stop_ep'] = best_ep, stop_ep
     model.load_state_dict(best_state)
     model.eval()
     return model, Xn, best
+
+
+def pack_curves(logs, folds, seeds, epochs):
+    """把逐 epoch 日志打包成定长数组(早停的折右侧 NaN 补齐) —— 学习体检报告用。
+
+    → tr_loss/va_loss/va_h14/va_h21: (折, 种子, epoch); best_ep/stop_ep: (折, 种子)。
+    折在外、种子在内, 与主循环同序; (折, 种子) 缺一条就报错(静默缺 = 报告错)。
+    """
+    F, E = len(folds), epochs
+    out = {k: np.full((F, seeds, E), np.nan, np.float32)
+           for k in ('tr_loss', 'va_loss', 'va_h14', 'va_h21')}
+    best_ep = np.full((F, seeds), -1, np.int32)
+    stop_ep = np.full((F, seeds), -1, np.int32)
+    seen = set()
+    for c in logs:
+        fi, se, cur = c['fi'], c['seed'], c['curve']
+        assert (fi, se) not in seen, '重复的 (折, 种子) 日志'
+        seen.add((fi, se))
+        assert c['best_ep'] >= 0 and c['stop_ep'] > 0, '(折, 种子) 日志不完整'
+        for k, j in (('tr_loss', 1), ('va_loss', 2), ('va_h14', 3), ('va_h21', 4)):
+            out[k][fi, se, :len(cur)] = [row[j] for row in cur]
+        best_ep[fi, se] = c['best_ep']
+        stop_ep[fi, se] = c['stop_ep']
+    assert len(seen) == F * seeds, '日志盖不满 %d 折 × %d 种子' % (F, seeds)
+    out.update(best_ep=best_ep, stop_ep=stop_ep,
+               folds=np.array(folds), seeds=np.array([seeds]), epochs=np.array([epochs]))
+    return out
 
 
 def score_window(model, Xn, lo, hi):
@@ -291,6 +341,8 @@ def main():
     ap.add_argument('--epochs', type=int, default=300)
     ap.add_argument('--aux', action='store_true', help='辅助任务: 同时预测 6 个平码(样本×7)')
     ap.add_argument('--save', default=None, help='把每个成员的样本外分数存成 .npy')
+    ap.add_argument('--log-curves', default=None,
+                    help='逐 epoch 学习曲线(训练/验证损失 + 验证命中)存成 .npz —— 学习体检用')
     a = ap.parse_args()
 
     # 🔴 数据缺失就【硬失败】—— 绝不静默跑空。这份文件原来在 /tmp, 被系统清掉之后
@@ -337,7 +389,8 @@ def main():
     # 分数在折内平均 → 集成分数。折之间首尾相接拼成整条样本外序列。
     per_seed = [{'sc': []} for _ in range(a.seeds)]
     ens_sc = []
-    for (a0, b0) in FOLDS:
+    curve_logs = [] if a.log_curves else None
+    for fi, (a0, b0) in enumerate(FOLDS):
         tr = (TRAIN0, a0 - VAL_LEN)
         va = (a0 - VAL_LEN, a0)
         # 标准化统计量【每折各算各的】, 只用该折的训练段 —— 用全量会漏后段信息
@@ -345,8 +398,11 @@ def main():
         sd = X[tr[0]:tr[1]].reshape(-1, nf).std(0) + 1e-6
         fold = []
         for seed in range(a.seeds):
+            lg = {'curve': [], 'fi': fi, 'seed': seed} if curve_logs is not None else None
             model, Xn, _ = run(a.arch, X, y_idx, mu, sd, tr, va, seed,
-                               a.shuffle, epochs=a.epochs, aux=aux)
+                               a.shuffle, epochs=a.epochs, aux=aux, log=lg)
+            if curve_logs is not None:
+                curve_logs.append(lg)
             s = score_window(model, Xn, a0, b0)
             per_seed[seed]['sc'].append(s)
             fold.append(s)
@@ -355,6 +411,9 @@ def main():
         ens_sc.append(np.mean([softmax(s) for s in fold], axis=0))
 
     tgt = np.concatenate([s_true[x:y] for x, y in FOLDS])
+    if a.log_curves:
+        np.savez(a.log_curves, **pack_curves(curve_logs, FOLDS, a.seeds, a.epochs))
+        print('学习曲线已存 %s' % a.log_curves)
     if a.save:
         # 存下每个成员的逐期分数 —— 事后要查"集成比成员差"到底是噪声还是并列打破的
         # 系统性偏差, 没有这个就只能干猜(刚吃过这个亏)。

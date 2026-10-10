@@ -1,0 +1,35 @@
+🔧 扩窗: 评估区间 ti 1000..1733 (734 期) → ti 300..1733 (1434 期)   [14 折]
+   老 7 折窗口逐项不变 ⇒ 尾段 734 期应与 20261005 标准跑读数一致(自检)
+
+数据 /Users/xiejinyu/macau-mark6/nn/nn_data.json
+  生成于 2026-10-05T16:14:04.770Z   开奖 1739 期 (末条 2026278)   index_md5 6a1d8f561575
+  ⚠️ 与当前 index.html 不一致 (现 6be869a044ba) —— 页面改过或已入库新一期。
+     要跑最新数据: node nn/gen_nn_data.js
+特征 13 维   滚动前推 14 折   评估区间 ti 300..1733 (1434 期全部为样本外)
+架构 attn  🔴对照组(训练+验证标签均已打乱)  种子 8
+
+/Users/xiejinyu/Library/Python/3.9/lib/python/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+/Users/xiejinyu/Library/Python/3.9/lib/python/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+  成员 0     样本外 top21: 621/1434   提升 +1.0%   z=0.34
+  成员 1     样本外 top21: 583/1434   提升 -5.1%   z=-1.68
+  成员 2     样本外 top21: 604/1434   提升 -1.7%   z=-0.56
+  成员 3     样本外 top21: 589/1434   提升 -4.2%   z=-1.36
+  成员 4     样本外 top21: 584/1434   提升 -5.0%   z=-1.63
+  成员 5     样本外 top21: 623/1434   提升 +1.4%   z=0.45
+  成员 6     样本外 top21: 628/1434   提升 +2.2%   z=0.72
+  成员 7     样本外 top21: 627/1434   提升 +2.0%   z=0.66
+
+=== 样本外汇总 (ti 300..1733, 1434 期) ===
+  buildUnion 卡     命中  386/1434   随机  369.9   提升   +4.4%   z= 1.06   (卡面 12.6 码)
+  神经网络·成员          命中  289.4/1434   随机  292.7   提升   -1.1%   (top10, 8成员均值)
+  神经网络·成员          命中  408.8/1434   随机  409.7   提升   -0.2%   (top14, 8成员均值)
+  神经网络·成员          命中  436.0/1434   随机  439.0   提升   -0.7%   (top15, 8成员均值)
+  神经网络·成员          命中  582.6/1434   随机  585.3   提升   -0.5%   (top20, 8成员均值)
+  神经网络·成员          命中  607.4/1434   随机  614.6   提升   -1.2%   (top21, 8成员均值)
+  神经网络·成员          命中  637.4/1434   随机  643.8   提升   -1.0%   (top22, 8成员均值)
+  神经网络·集成          命中  615.0/1434   随机  614.6   提升   +0.1%   z= 0.02   (top21, 8成员集成)
+
+  功效: 要在 α=0.05/80% 功效下测出【相对 +5%】的优势, 需约 4181 期;
+        本区间只有 1434 期 ⇒ 真存在 5% 优势也大概率测不出来(不算"证明没有")。
